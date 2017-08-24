@@ -1,3 +1,0 @@
-[submodule "s2client-proto"]
-	path = s2client-proto
-	url = https://github.com/Blizzard/s2client-proto
