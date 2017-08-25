@@ -26,7 +26,13 @@ func main() {
 		conn: &c,
 	}
 
-	req := &SC2APIProtocol.Request{}
+	req := &SC2APIProtocol.Request{
+		Request: &SC2APIProtocol.Request_CreateGame{
+			CreateGame: &SC2APIProtocol.RequestCreateGame{
+				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{},
+			},
+		},
+	}
 	err = protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send request:", err)
