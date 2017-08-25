@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./sc2proto/sc2api.pb.go"
 	"github.com/golang/protobuf/proto"
+	"github.com/grantmd/go-s2client/sc2proto"
 )
 
 type Protocol struct {
