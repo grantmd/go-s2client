@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
 )
 
@@ -20,4 +21,20 @@ func main() {
 	}
 	defer c.Close()
 	log.Println("successfully connected")
+
+	protocol := &Protocol{
+		conn: &c,
+	}
+
+	req := &SC2APIProtocol.Request{}
+	err = protocol.SendRequest(req)
+	if err != nil {
+		log.Fatal("Could not send request:", err)
+	}
+
+	res, err := protocol.ReadResponse()
+	if err != nil {
+		log.Fatal("Could not receive response:", err)
+	}
+	log.Printf("Got response: %s", res)
 }
