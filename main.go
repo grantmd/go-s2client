@@ -26,18 +26,26 @@ func main() {
 	}
 	defer protocol.Disconnect()
 
-	/*req := &SC2APIProtocol.Request{
+	ourPlayer := &SC2APIProtocol.PlayerSetup{
+		Type:       SC2APIProtocol.PlayerType_Participant.Enum(),
+		Race:       SC2APIProtocol.Race_Terran.Enum(),
+		Difficulty: SC2APIProtocol.Difficulty_VeryEasy.Enum(),
+	}
+	req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_CreateGame{
 			CreateGame: &SC2APIProtocol.RequestCreateGame{
-				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{},
+				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
+					BattlenetMapName: "Antiga Shipyard",
+				},
+				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer},
 			},
 		},
-	}*/
-	req := &SC2APIProtocol.Request{
+	}
+	/*req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_AvailableMaps{
 			AvailableMaps: &SC2APIProtocol.RequestAvailableMaps{},
 		},
-	}
+	}*/
 	/*req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_Ping{
 			Ping: &SC2APIProtocol.RequestPing{},
@@ -53,11 +61,10 @@ func main() {
 		log.Fatal("Could not send request:", err)
 	}
 
-	res, err := protocol.ReadResponse()
+	_, err = protocol.ReadResponse()
 	if err != nil {
 		log.Fatal("Could not receive response:", err)
 	}
-	log.Printf("Got response: %s", res)
 
 	err = protocol.Disconnect()
 	if err != nil {
