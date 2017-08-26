@@ -36,9 +36,14 @@ func main() {
 	/*req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_AvailableMaps{},
 	}*/
-	req := &SC2APIProtocol.Request{
+	/*req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_Ping{
 			Ping: &SC2APIProtocol.RequestPing{},
+		},
+	}*/
+	req := &SC2APIProtocol.Request{
+		Request: &SC2APIProtocol.Request_Debug{
+			Debug: &SC2APIProtocol.RequestDebug{},
 		},
 	}
 	err = protocol.SendRequest(req)
