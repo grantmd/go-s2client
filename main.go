@@ -32,13 +32,13 @@ func main() {
 
 	// Create a new game
 	ourPlayer := &SC2APIProtocol.PlayerSetup{
-		Type:       SC2APIProtocol.PlayerType_Participant.Enum(),
-		Race:       SC2APIProtocol.Race_Terran.Enum(),
-		Difficulty: SC2APIProtocol.Difficulty_VeryEasy.Enum(),
+		Type: SC2APIProtocol.PlayerType_Participant.Enum(),
+		Race: SC2APIProtocol.Race_Terran.Enum(),
 	}
 	opponentPlayer := &SC2APIProtocol.PlayerSetup{
-		Type: SC2APIProtocol.PlayerType_Computer.Enum(),
-		Race: SC2APIProtocol.Race_Terran.Enum(),
+		Type:       SC2APIProtocol.PlayerType_Computer.Enum(),
+		Race:       SC2APIProtocol.Race_Terran.Enum(),
+		Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
 	}
 
 	req = &SC2APIProtocol.Request{
