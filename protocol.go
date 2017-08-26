@@ -14,7 +14,6 @@ type Protocol struct {
 func (p *Protocol) SendRequest(req *SC2APIProtocol.Request) (err error) {
 	log.Printf("Request: %s", req)
 	data, err := proto.Marshal(req)
-	log.Printf("Sending: %s", data)
 	if err != nil {
 		return err
 	}
@@ -24,7 +23,6 @@ func (p *Protocol) SendRequest(req *SC2APIProtocol.Request) (err error) {
 
 func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 	data, err := p.conn.Read()
-	log.Printf("Received: %s", data)
 	if err != nil {
 		return nil, err
 	}

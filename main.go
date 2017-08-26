@@ -19,12 +19,12 @@ func main() {
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	defer c.Close()
 	log.Println("successfully connected")
 
 	protocol := &Protocol{
 		conn: &c,
 	}
+	defer protocol.Disconnect()
 
 	req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_CreateGame{
