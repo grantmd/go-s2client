@@ -26,11 +26,19 @@ func main() {
 	}
 	defer protocol.Disconnect()
 
-	req := &SC2APIProtocol.Request{
+	/*req := &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_CreateGame{
 			CreateGame: &SC2APIProtocol.RequestCreateGame{
 				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{},
 			},
+		},
+	}*/
+	/*req := &SC2APIProtocol.Request{
+		Request: &SC2APIProtocol.Request_AvailableMaps{},
+	}*/
+	req := &SC2APIProtocol.Request{
+		Request: &SC2APIProtocol.Request_Ping{
+			Ping: &SC2APIProtocol.RequestPing{},
 		},
 	}
 	err = protocol.SendRequest(req)
