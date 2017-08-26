@@ -25,7 +25,7 @@ func (c *Conn) Dial(addr *string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer c.ws.Close()
+	//defer c.ws.Close()
 
 	return nil
 }

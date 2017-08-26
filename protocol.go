@@ -37,3 +37,7 @@ func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 	log.Printf("Response: %s", res)
 	return res, nil
 }
+
+func (p *Protocol) Disconnect() (err error) {
+	return p.conn.Close()
+}

@@ -43,4 +43,11 @@ func main() {
 		log.Fatal("Could not receive response:", err)
 	}
 	log.Printf("Got response: %s", res)
+
+	err = protocol.Disconnect()
+	if err != nil {
+		log.Fatal("Error disconnecting:", err)
+	}
+
+	log.Println("exiting")
 }
