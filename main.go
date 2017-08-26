@@ -26,32 +26,39 @@ func main() {
 	}
 	defer protocol.Disconnect()
 
+	var req *SC2APIProtocol.Request
+
 	ourPlayer := &SC2APIProtocol.PlayerSetup{
 		Type:       SC2APIProtocol.PlayerType_Participant.Enum(),
 		Race:       SC2APIProtocol.Race_Terran.Enum(),
 		Difficulty: SC2APIProtocol.Difficulty_VeryEasy.Enum(),
 	}
-	req := &SC2APIProtocol.Request{
+	opponentPlayer := &SC2APIProtocol.PlayerSetup{
+		Type: SC2APIProtocol.PlayerType_Computer.Enum(),
+		Race: SC2APIProtocol.Race_Terran.Enum(),
+	}
+
+	req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_CreateGame{
 			CreateGame: &SC2APIProtocol.RequestCreateGame{
 				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
 					BattlenetMapName: "Antiga Shipyard",
 				},
-				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer},
+				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 			},
 		},
 	}
-	/*req := &SC2APIProtocol.Request{
+	/*req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_AvailableMaps{
 			AvailableMaps: &SC2APIProtocol.RequestAvailableMaps{},
 		},
 	}*/
-	/*req := &SC2APIProtocol.Request{
+	/*req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_Ping{
 			Ping: &SC2APIProtocol.RequestPing{},
 		},
 	}*/
-	/*req := &SC2APIProtocol.Request{
+	/*req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_Debug{
 			Debug: &SC2APIProtocol.RequestDebug{},
 		},
