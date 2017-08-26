@@ -27,6 +27,7 @@ func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 		return nil, err
 	}
 
+	res = &SC2APIProtocol.Response{}
 	err = proto.Unmarshal(data, res)
 	if err != nil {
 		return nil, err
