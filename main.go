@@ -110,16 +110,34 @@ func main() {
 			log.Fatal("Could not receive response:", err)
 		}
 
-		obs := resp.GetObservation()
+		respObs := resp.GetObservation()
+		// respObs.Actions - list of actions performed
+		// respObs.ActionErrors - list of actions which did not complete
+		// respObs.Observation - whole mess of observation data. see struct
+		// respObs.PlayerResult - result of game, only if ended that step
+		// respObs.Chat - chat messages received. could be fun
+
+		obs := respObs.GetObservation()
+		// obs.PlayerCommon - looks like player state. minerals, vespene, units, etc. very useful
+		// obs.Alerts - critical end game actions like nuclear launch detected
+		// obs.Abilities - list of available abilities? unclear. definitiion of AvailableAbility is in common.pb.go
+		// obs.Score - I think how well you're doing, if you request score mode at game start
+		// obs.RawData - Raw game data. Where the meat is of what we can see and do. Look at raw.pb.go for all the info
+		// obs.FeatureLayerData - Probably not available unless you pick that game mode. Image based?
+		// obs.RenderData - Full fidelity rendered image of the game. Not available yet
+		// obs.UiData - Also not available yet
+
+		log.Printf("ste[: %s", obs.PlayerCommon)
 
 		// Are we done?
 		if resp.GetStatus() == SC2APIProtocol.Status_ended {
-			log.Println("Game finished:", resp)
+			log.Println("Game over, man")
+			log.Println(respObs.PlayerResult)
 			break
 		}
 
 		// Examine game state
-		for _, unit := range obs.Observation.RawData.Units {
+		for _, unit := range obs.RawData.Units {
 			if *unit.UnitType == 18 { // Command center
 
 			}
