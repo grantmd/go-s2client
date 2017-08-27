@@ -11,7 +11,8 @@ import (
 
 var addr = flag.String("addr", "localhost:5000", "sc2api server address")
 var listMaps = flag.Bool("listMaps", false, "list available maps")
-var mapName = flag.String("map", "", "name of map to play")
+var mapName = flag.String("mapName", "", "name of battlenet map to play")
+var mapPath = flag.String("mapPath", "", "path of local map to play")
 
 func main() {
 	flag.Parse()
@@ -63,7 +64,7 @@ func main() {
 		}
 	}
 
-	if *mapName != "" {
+	if *mapName != "" || *mapPath != "" {
 		// Create a new game
 		ourPlayer := &SC2APIProtocol.PlayerSetup{
 			Type: SC2APIProtocol.PlayerType_Participant.Enum(),
@@ -75,18 +76,38 @@ func main() {
 			Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
 		}
 
-		req = &SC2APIProtocol.Request{
-			Request: &SC2APIProtocol.Request_CreateGame{
-				CreateGame: &SC2APIProtocol.RequestCreateGame{
-					Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
-						BattlenetMapName: *mapName,
+		// Set either a battlenet map or a local map from args
+		if *mapName != "" {
+			req = &SC2APIProtocol.Request{
+				Request: &SC2APIProtocol.Request_CreateGame{
+					CreateGame: &SC2APIProtocol.RequestCreateGame{
+						Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
+							BattlenetMapName: *mapName,
+						},
+						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
+						DisableFog:  proto.Bool(false),
+						Realtime:    proto.Bool(true),
 					},
-					PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
-					DisableFog:  proto.Bool(false),
-					Realtime:    proto.Bool(true),
 				},
-			},
+			}
 		}
+		if *mapPath != "" {
+			req = &SC2APIProtocol.Request{
+				Request: &SC2APIProtocol.Request_CreateGame{
+					CreateGame: &SC2APIProtocol.RequestCreateGame{
+						Map: &SC2APIProtocol.RequestCreateGame_LocalMap{
+							LocalMap: &SC2APIProtocol.LocalMap{
+								MapPath: mapPath,
+							},
+						},
+						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
+						DisableFog:  proto.Bool(false),
+						Realtime:    proto.Bool(true),
+					},
+				},
+			}
+		}
+
 		log.Println("Starting game…")
 		err = protocol.SendRequest(req)
 		if err != nil {
