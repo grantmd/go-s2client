@@ -114,6 +114,7 @@ func main() {
 
 		// Are we done?
 		if resp.GetStatus() == SC2APIProtocol.Status_ended {
+			log.Println("Game finished:", resp)
 			break
 		}
 
@@ -146,6 +147,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Could not receive leave response:", err)
 	}
+	log.Println("Game left:", resp)
 
 	// Disconnect
 	log.Println("Disconnecting")
