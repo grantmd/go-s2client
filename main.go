@@ -15,7 +15,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
 	var c Conn
-	log.Printf("Connecting to %s", *addr)
+	log.Printf("Connecting to %s…", *addr)
 
 	err := c.Dial(addr)
 	if err != nil {
@@ -54,7 +54,7 @@ func main() {
 			},
 		},
 	}
-	log.Println("Starting game")
+	log.Println("Starting game…")
 	err = protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send game start request:", err)
@@ -79,7 +79,7 @@ func main() {
 			},
 		},
 	}
-	log.Println("Joining game")
+	log.Println("Joining game…")
 	err = protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send join game request:", err)
@@ -137,7 +137,7 @@ func main() {
 			LeaveGame: &SC2APIProtocol.RequestLeaveGame{},
 		},
 	}
-	log.Println("Leaving game")
+	log.Println("Leaving game…")
 	err = protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send leave request:", err)
@@ -150,13 +150,13 @@ func main() {
 	log.Println("Game left:", resp)
 
 	// Disconnect
-	log.Println("Disconnecting")
+	log.Println("Disconnecting…")
 	err = protocol.Disconnect()
 	if err != nil {
 		log.Fatal("Error disconnecting:", err)
 	}
 
-	log.Println("Exiting")
+	log.Println("gg")
 
 	// Extra requests I've tested
 	/*req = &SC2APIProtocol.Request{
