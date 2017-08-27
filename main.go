@@ -20,6 +20,7 @@ var mapPath = flag.String("mapPath", "", "path of local map to play")
 var quitRequested bool
 
 func main() {
+	// Setup signal handling
 	quitRequested = false
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -28,9 +29,11 @@ func main() {
 		quitRequested = true
 	}()
 
+	// Parse command line args and configure logging
 	flag.Parse()
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
+	// Connect to game server
 	var c Conn
 	log.Printf("Connecting to %s…", *addr)
 
@@ -45,6 +48,7 @@ func main() {
 	}
 	defer protocol.Disconnect()
 
+	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
 
