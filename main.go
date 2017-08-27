@@ -6,6 +6,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -14,7 +17,17 @@ var listMaps = flag.Bool("listMaps", false, "list available maps")
 var mapName = flag.String("mapName", "", "name of battlenet map to play")
 var mapPath = flag.String("mapPath", "", "path of local map to play")
 
+var quitRequested bool
+
 func main() {
+	quitRequested = false
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		quitRequested = true
+	}()
+
 	flag.Parse()
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
@@ -147,6 +160,11 @@ func main() {
 
 		// Game loop
 		for {
+			// Do we want to be done?
+			if quitRequested == true {
+				break
+			}
+
 			// Request observation
 			req = &SC2APIProtocol.Request{
 				Request: &SC2APIProtocol.Request_Observation{
