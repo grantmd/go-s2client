@@ -12,7 +12,7 @@ var addr = flag.String("addr", "localhost:5000", "sc2api server address")
 
 func main() {
 	flag.Parse()
-	log.SetFlags(0)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
 	var c Conn
 	log.Printf("Connecting to %s", *addr)
