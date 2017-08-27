@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
@@ -9,6 +10,8 @@ import (
 )
 
 var addr = flag.String("addr", "localhost:5000", "sc2api server address")
+var listMaps = flag.Bool("listMaps", false, "list available maps")
+var mapName = flag.String("map", "", "name of map to play")
 
 func main() {
 	flag.Parse()
@@ -31,141 +34,172 @@ func main() {
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
 
-	// Create a new game
-	ourPlayer := &SC2APIProtocol.PlayerSetup{
-		Type: SC2APIProtocol.PlayerType_Participant.Enum(),
-		Race: SC2APIProtocol.Race_Terran.Enum(),
-	}
-	opponentPlayer := &SC2APIProtocol.PlayerSetup{
-		Type:       SC2APIProtocol.PlayerType_Computer.Enum(),
-		Race:       SC2APIProtocol.Race_Terran.Enum(),
-		Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
-	}
-
-	req = &SC2APIProtocol.Request{
-		Request: &SC2APIProtocol.Request_CreateGame{
-			CreateGame: &SC2APIProtocol.RequestCreateGame{
-				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
-					BattlenetMapName: "Antiga Shipyard",
-				},
-				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
-				DisableFog:  proto.Bool(false),
-				Realtime:    proto.Bool(true),
-			},
-		},
-	}
-	log.Println("Starting game…")
-	err = protocol.SendRequest(req)
-	if err != nil {
-		log.Fatal("Could not send game start request:", err)
-	}
-
-	resp, err = protocol.ReadResponse()
-	if err != nil {
-		log.Fatal("Could not receive game start response:", err)
-	}
-	log.Println("Game started:", resp)
-
-	// Join the game
-	req = &SC2APIProtocol.Request{
-		Request: &SC2APIProtocol.Request_JoinGame{
-			JoinGame: &SC2APIProtocol.RequestJoinGame{
-				Participation: &SC2APIProtocol.RequestJoinGame_Race{
-					Race: SC2APIProtocol.Race_Terran,
-				},
-				Options: &SC2APIProtocol.InterfaceOptions{
-					Raw: proto.Bool(true),
-				},
-			},
-		},
-	}
-	log.Println("Joining game…")
-	err = protocol.SendRequest(req)
-	if err != nil {
-		log.Fatal("Could not send join game request:", err)
-	}
-
-	resp, err = protocol.ReadResponse()
-	if err != nil {
-		log.Fatal("Could not receive join game response:", err)
-	}
-	log.Println("Game joined:", resp)
-
-	// Game loop
-	for {
-		// Request observation
+	if *listMaps == true {
 		req = &SC2APIProtocol.Request{
-			Request: &SC2APIProtocol.Request_Observation{
-				Observation: &SC2APIProtocol.RequestObservation{},
+			Request: &SC2APIProtocol.Request_AvailableMaps{
+				AvailableMaps: &SC2APIProtocol.RequestAvailableMaps{},
 			},
 		}
+		log.Println("Listing available maps…")
 		err = protocol.SendRequest(req)
 		if err != nil {
-			log.Fatal("Could not send request:", err)
+			log.Fatal("Could not send available maps request:", err)
 		}
 
-		// Read the game state result
 		resp, err = protocol.ReadResponse()
 		if err != nil {
-			log.Fatal("Could not receive response:", err)
+			log.Fatal("Could not receive available maps response:", err)
 		}
 
-		respObs := resp.GetObservation()
-		// respObs.Actions - list of actions performed
-		// respObs.ActionErrors - list of actions which did not complete
-		// respObs.Observation - whole mess of observation data. see struct
-		// respObs.PlayerResult - result of game, only if ended that step
-		// respObs.Chat - chat messages received. could be fun
-
-		obs := respObs.GetObservation()
-		// obs.PlayerCommon - looks like player state. minerals, vespene, units, etc. very useful
-		// obs.Alerts - critical end game actions like nuclear launch detected
-		// obs.Abilities - list of available abilities? unclear. definitiion of AvailableAbility is in common.pb.go
-		// obs.Score - I think how well you're doing, if you request score mode at game start
-		// obs.RawData - Raw game data. Where the meat is of what we can see and do. Look at raw.pb.go for all the info
-		// obs.FeatureLayerData - Probably not available unless you pick that game mode. Image based?
-		// obs.RenderData - Full fidelity rendered image of the game. Not available yet
-		// obs.UiData - Also not available yet
-
-		log.Printf("ste[: %s", obs.PlayerCommon)
-
-		// Are we done?
-		if resp.GetStatus() == SC2APIProtocol.Status_ended {
-			log.Println("Game over, man")
-			log.Println(respObs.PlayerResult)
-			break
+		availableMaps := resp.GetAvailableMaps()
+		fmt.Println("Local maps:")
+		for _, localMap := range availableMaps.LocalMapPaths {
+			fmt.Println(localMap)
 		}
 
-		// Examine game state
-		for _, unit := range obs.RawData.Units {
-			if *unit.UnitType == 18 { // Command center
+		fmt.Println("\nBattlenet maps:")
+		for _, bnetMap := range availableMaps.BattlenetMapNames {
+			fmt.Println(bnetMap)
+		}
+	}
 
+	if *mapName != "" {
+		// Create a new game
+		ourPlayer := &SC2APIProtocol.PlayerSetup{
+			Type: SC2APIProtocol.PlayerType_Participant.Enum(),
+			Race: SC2APIProtocol.Race_Terran.Enum(),
+		}
+		opponentPlayer := &SC2APIProtocol.PlayerSetup{
+			Type:       SC2APIProtocol.PlayerType_Computer.Enum(),
+			Race:       SC2APIProtocol.Race_Terran.Enum(),
+			Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
+		}
+
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_CreateGame{
+				CreateGame: &SC2APIProtocol.RequestCreateGame{
+					Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
+						BattlenetMapName: *mapName,
+					},
+					PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
+					DisableFog:  proto.Bool(false),
+					Realtime:    proto.Bool(true),
+				},
+			},
+		}
+		log.Println("Starting game…")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send game start request:", err)
+		}
+
+		resp, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive game start response:", err)
+		}
+		log.Println("Game started:", resp)
+
+		// Join the game
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_JoinGame{
+				JoinGame: &SC2APIProtocol.RequestJoinGame{
+					Participation: &SC2APIProtocol.RequestJoinGame_Race{
+						Race: SC2APIProtocol.Race_Terran,
+					},
+					Options: &SC2APIProtocol.InterfaceOptions{
+						Raw: proto.Bool(true),
+					},
+				},
+			},
+		}
+		log.Println("Joining game…")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send join game request:", err)
+		}
+
+		resp, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive join game response:", err)
+		}
+		log.Println("Game joined:", resp)
+
+		// Game loop
+		for {
+			// Request observation
+			req = &SC2APIProtocol.Request{
+				Request: &SC2APIProtocol.Request_Observation{
+					Observation: &SC2APIProtocol.RequestObservation{},
+				},
 			}
+			err = protocol.SendRequest(req)
+			if err != nil {
+				log.Fatal("Could not send request:", err)
+			}
+
+			// Read the game state result
+			resp, err = protocol.ReadResponse()
+			if err != nil {
+				log.Fatal("Could not receive response:", err)
+			}
+
+			respObs := resp.GetObservation()
+			// respObs.Actions - list of actions performed
+			// respObs.ActionErrors - list of actions which did not complete
+			// respObs.Observation - whole mess of observation data. see struct
+			// respObs.PlayerResult - result of game, only if ended that step
+			// respObs.Chat - chat messages received. could be fun
+
+			obs := respObs.GetObservation()
+			// obs.PlayerCommon - looks like player state. minerals, vespene, units, etc. very useful
+			// obs.Alerts - critical end game actions like nuclear launch detected
+			// obs.Abilities - list of available abilities? unclear. definitiion of AvailableAbility is in common.pb.go
+			// obs.Score - I think how well you're doing, if you request score mode at game start
+			// obs.RawData - Raw game data. Where the meat is of what we can see and do. Look at raw.pb.go for all the info
+			// obs.FeatureLayerData - Probably not available unless you pick that game mode. Image based?
+			// obs.RenderData - Full fidelity rendered image of the game. Not available yet
+			// obs.UiData - Also not available yet
+
+			log.Printf("step: %s", obs.PlayerCommon)
+
+			// Are we done?
+			if resp.GetStatus() == SC2APIProtocol.Status_ended {
+				log.Println("Game over, man")
+				log.Println(respObs.PlayerResult)
+				break
+			}
+
+			// Examine game state
+			for _, unit := range obs.RawData.Units {
+				if *unit.UnitType == 18 { // Command center
+
+				}
+			}
+
+			// Send action
+
+			// Keep this reasonably paced
+			time.Sleep(100 * time.Millisecond)
 		}
 
-		// Send action
+		// Leave game
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_LeaveGame{
+				LeaveGame: &SC2APIProtocol.RequestLeaveGame{},
+			},
+		}
+		log.Println("Leaving game…")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send leave request:", err)
+		}
 
-		// Keep this reasonably paced
-		time.Sleep(100 * time.Millisecond)
+		_, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive leave response:", err)
+		}
+		log.Println("Game left:", resp)
 	}
-
-	// Leave game
-	req = &SC2APIProtocol.Request{
-		Request: &SC2APIProtocol.Request_LeaveGame{
-			LeaveGame: &SC2APIProtocol.RequestLeaveGame{},
-		},
-	}
-	log.Println("Leaving game…")
-	err = protocol.SendRequest(req)
-	if err != nil {
-		log.Fatal("Could not send leave request:", err)
-	}
-
-	_, err = protocol.ReadResponse()
-	if err != nil {
-		log.Fatal("Could not receive leave response:", err)
-	}
-	log.Println("Game left:", resp)
 
 	// Disconnect
 	log.Println("Disconnecting…")
@@ -177,11 +211,6 @@ func main() {
 	log.Println("gg")
 
 	// Extra requests I've tested
-	/*req = &SC2APIProtocol.Request{
-		Request: &SC2APIProtocol.Request_AvailableMaps{
-			AvailableMaps: &SC2APIProtocol.RequestAvailableMaps{},
-		},
-	}*/
 	/*req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_Ping{
 			Ping: &SC2APIProtocol.RequestPing{},
