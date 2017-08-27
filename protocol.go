@@ -34,6 +34,9 @@ func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 		return nil, err
 	}
 
+	// TODO: https://github.com/Blizzard/s2client-proto/blob/master/docs/protocol.md#protocol-errors
+	// Should empty responses except for the `error` field populated return an error here? Or let callers handle it?
+
 	return res, nil
 }
 
