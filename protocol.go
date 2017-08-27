@@ -5,8 +5,6 @@ package main
 //
 
 import (
-	"log"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/grantmd/go-s2client/sc2proto"
 )
@@ -16,7 +14,6 @@ type Protocol struct {
 }
 
 func (p *Protocol) SendRequest(req *SC2APIProtocol.Request) (err error) {
-	log.Printf("Request: %s", req)
 	data, err := proto.Marshal(req)
 	if err != nil {
 		return err
@@ -37,7 +34,6 @@ func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 		return nil, err
 	}
 
-	log.Printf("Response: %s", res)
 	return res, nil
 }
 
