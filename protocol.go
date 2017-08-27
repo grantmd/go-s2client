@@ -1,5 +1,9 @@
 package main
 
+//
+// Methods for communicating via request/response over the websocket
+//
+
 import (
 	"log"
 

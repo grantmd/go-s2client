@@ -1,5 +1,9 @@
 package main
 
+//
+// The basic websocket connection code
+//
+
 import (
 	"net/http"
 	"net/url"
