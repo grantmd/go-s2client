@@ -15,13 +15,13 @@ func main() {
 	log.SetFlags(0)
 
 	var c Conn
-	log.Printf("connecting to %s", *addr)
+	log.Printf("Connecting to %s", *addr)
 
 	err := c.Dial(addr)
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	log.Println("successfully connected")
+	log.Println("Successfully connected!")
 
 	protocol := &Protocol{
 		conn: &c,
@@ -29,6 +29,7 @@ func main() {
 	defer protocol.Disconnect()
 
 	var req *SC2APIProtocol.Request
+	var resp *SC2APIProtocol.Response
 
 	// Create a new game
 	ourPlayer := &SC2APIProtocol.PlayerSetup{
@@ -53,15 +54,17 @@ func main() {
 			},
 		},
 	}
+	log.Println("Starting game")
 	err = protocol.SendRequest(req)
 	if err != nil {
-		log.Fatal("Could not send request:", err)
+		log.Fatal("Could not send game start request:", err)
 	}
 
-	_, err = protocol.ReadResponse()
+	resp, err = protocol.ReadResponse()
 	if err != nil {
-		log.Fatal("Could not receive response:", err)
+		log.Fatal("Could not receive game start response:", err)
 	}
+	log.Println("Game started:", resp)
 
 	// Join the game
 	req = &SC2APIProtocol.Request{
@@ -76,15 +79,17 @@ func main() {
 			},
 		},
 	}
+	log.Println("Joining game")
 	err = protocol.SendRequest(req)
 	if err != nil {
-		log.Fatal("Could not send request:", err)
+		log.Fatal("Could not send join game request:", err)
 	}
 
-	_, err = protocol.ReadResponse()
+	resp, err = protocol.ReadResponse()
 	if err != nil {
-		log.Fatal("Could not receive response:", err)
+		log.Fatal("Could not receive join game response:", err)
 	}
+	log.Println("Game joined:", resp)
 
 	// Game loop
 	for {
@@ -100,7 +105,7 @@ func main() {
 		}
 
 		// Read the game state result
-		resp, err := protocol.ReadResponse()
+		resp, err = protocol.ReadResponse()
 		if err != nil {
 			log.Fatal("Could not receive response:", err)
 		}
@@ -131,23 +136,25 @@ func main() {
 			LeaveGame: &SC2APIProtocol.RequestLeaveGame{},
 		},
 	}
+	log.Println("Leaving game")
 	err = protocol.SendRequest(req)
 	if err != nil {
-		log.Fatal("Could not send request:", err)
+		log.Fatal("Could not send leave request:", err)
 	}
 
 	_, err = protocol.ReadResponse()
 	if err != nil {
-		log.Fatal("Could not receive response:", err)
+		log.Fatal("Could not receive leave response:", err)
 	}
 
 	// Disconnect
+	log.Println("Disconnecting")
 	err = protocol.Disconnect()
 	if err != nil {
 		log.Fatal("Error disconnecting:", err)
 	}
 
-	log.Println("exiting")
+	log.Println("Exiting")
 
 	// Extra requests I've tested
 	/*req = &SC2APIProtocol.Request{
