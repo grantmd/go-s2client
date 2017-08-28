@@ -207,7 +207,7 @@ func main() {
 			// obs.UiData - Also not available yet
 
 			// Print our rough state of game every 10 steps
-			if obs.GetGameLoop()%10 == 0 {
+			if obs.GetGameLoop()%100 == 0 {
 				log.Println(obs.PlayerCommon)
 				log.Printf("%s Score: %d", SC2APIProtocol.Score_ScoreType_name[int32(*obs.Score.ScoreType)], int32(*obs.Score.Score))
 			}
@@ -216,6 +216,7 @@ func main() {
 			if resp.GetStatus() == SC2APIProtocol.Status_ended {
 				log.Println("Game over, man")
 				log.Println(respObs.PlayerResult)
+				log.Println(obs.Score)
 				break
 			}
 
@@ -236,14 +237,14 @@ func main() {
 				}
 				if unitType == 317 { // This appears to be the beacon from the minigame, but not listed anywhere
 					// TODO: Make this into a library function
-					if beaconPos.X != unit.Pos.X && beaconPos.Y != unit.Pos.Y && beaconPos.Z != unit.Pos.Z {
-						//log.Printf("Beacon %d found at %f,%f,%f", unit.GetTag(), *unit.Pos.X, *unit.Pos.Y, *unit.Pos.Z)
+					if beaconPos.X == nil || *beaconPos.X != *unit.Pos.X || *beaconPos.Y != *unit.Pos.Y || *beaconPos.Z != *unit.Pos.Z {
+						log.Printf("Beacon %d found at %f,%f,%f", unit.GetTag(), *unit.Pos.X, *unit.Pos.Y, *unit.Pos.Z)
 						beaconPos = *unit.Pos
 					}
 				}
 				if unitType == 48 { // Marine
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						var abilityId int32 = 1 // "SMART". Could also be 16
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && beaconPos.X != nil {
+						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
@@ -285,7 +286,7 @@ func main() {
 			}
 
 			// Keep this reasonably paced
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 
 		// Leave game
