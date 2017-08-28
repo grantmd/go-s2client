@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
+	"math"
 	"os"
 	"os/signal"
 	"syscall"
@@ -208,6 +209,7 @@ func main() {
 
 			// Print our rough state of game every 10 steps
 			if obs.GetGameLoop()%100 == 0 {
+				//log.Println(rawData.Units)
 				log.Println(obs.PlayerCommon)
 				log.Printf("%s Score: %d", SC2APIProtocol.Score_ScoreType_name[int32(*obs.Score.ScoreType)], int32(*obs.Score.Score))
 			}
@@ -235,14 +237,22 @@ func main() {
 				if unitType == 18 { // Command center
 
 				}
+
 				if unitType == 317 { // This appears to be the beacon from the minigame, but not listed anywhere
 					// TODO: Make this into a library function
+					// This is for "MoveToBeacon"
 					if beaconPos.X == nil || *beaconPos.X != *unit.Pos.X || *beaconPos.Y != *unit.Pos.Y || *beaconPos.Z != *unit.Pos.Z {
 						log.Printf("Beacon %d found at %f,%f,%f", unit.GetTag(), *unit.Pos.X, *unit.Pos.Y, *unit.Pos.Z)
 						beaconPos = *unit.Pos
 					}
 				}
+
+				if unitType == 1680 { // This appears to be the mineral shard from the minigame, but not listed anywhere
+
+				}
+
 				if unitType == 48 { // Marine
+					// This is for "MoveToBeacon"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && beaconPos.X != nil {
 						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 						a := &SC2APIProtocol.Action{
@@ -264,6 +274,33 @@ func main() {
 						action.Actions = append(action.Actions, a)
 						log.Printf("Moving marine %d to beacon", unit.GetTag())
 						continue
+					}
+
+					// This is for "CollectMineralShards"
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						target := FindClosestUnit(rawData.Units, unit, 1680)
+						if target != nil {
+							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+												TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+													X: target.Pos.X,
+													Y: target.Pos.Y,
+												},
+											},
+											UnitTags: []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Moving marine %d to mineral shard %d", unit.GetTag(), target.GetTag())
+							continue
+						}
 					}
 				}
 			}
@@ -330,5 +367,25 @@ func main() {
 	}*/
 }
 
+func FindClosestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit, desiredUnitType uint32) *SC2APIProtocol.Unit {
+	var closestUnit *SC2APIProtocol.Unit
+	var bestDistance float64
+	for _, unit := range units {
+		dx := float64(*ourUnit.Pos.X - *unit.Pos.X)
+		dy := float64(*ourUnit.Pos.Y - *unit.Pos.Y)
+		distance := math.Sqrt(math.Pow(dx, 2) + math.Pow(dy, 2))
+
+		if distance < bestDistance || bestDistance == 0 {
+			bestDistance = distance
+			closestUnit = unit
+		}
+	}
+	return closestUnit
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
+
+// Best Scores:
+// MoveToBeacon: 27
+// CollectMineralShards: 99
