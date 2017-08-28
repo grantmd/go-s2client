@@ -360,6 +360,10 @@ func FindClosestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit,
 	var closestUnit *SC2APIProtocol.Unit
 	var bestDistance float64
 	for _, unit := range units {
+		if unit.GetUnitType() != desiredUnitType {
+			continue
+		}
+
 		dx := float64(*ourUnit.Pos.X - *unit.Pos.X)
 		dy := float64(*ourUnit.Pos.Y - *unit.Pos.Y)
 		distance := math.Sqrt(math.Pow(dx, 2) + math.Pow(dy, 2))
@@ -376,6 +380,10 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 	var farthestUnit *SC2APIProtocol.Unit
 	var bestDistance float64
 	for _, unit := range units {
+		if unit.GetUnitType() != desiredUnitType {
+			continue
+		}
+
 		dx := float64(*ourUnit.Pos.X - *unit.Pos.X)
 		dy := float64(*ourUnit.Pos.Y - *unit.Pos.Y)
 		distance := math.Sqrt(math.Pow(dx, 2) + math.Pow(dy, 2))
@@ -393,4 +401,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 
 // Best Scores:
 // MoveToBeacon: 27
-// CollectMineralShards: 99
+// CollectMineralShards: 104
