@@ -383,6 +383,22 @@ func FindClosestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit,
 	return closestUnit
 }
 
+func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit, desiredUnitType uint32) *SC2APIProtocol.Unit {
+	var farthestUnit *SC2APIProtocol.Unit
+	var bestDistance float64
+	for _, unit := range units {
+		dx := float64(*ourUnit.Pos.X - *unit.Pos.X)
+		dy := float64(*ourUnit.Pos.Y - *unit.Pos.Y)
+		distance := math.Sqrt(math.Pow(dx, 2) + math.Pow(dy, 2))
+
+		if distance > bestDistance || bestDistance == 0 {
+			bestDistance = distance
+			farthestUnit = unit
+		}
+	}
+	return farthestUnit
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
 
