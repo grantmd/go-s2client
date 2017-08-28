@@ -145,7 +145,8 @@ func main() {
 						Race: SC2APIProtocol.Race_Terran,
 					},
 					Options: &SC2APIProtocol.InterfaceOptions{
-						Raw: proto.Bool(true),
+						Raw:   proto.Bool(true),
+						Score: proto.Bool(true),
 					},
 				},
 			},
@@ -163,6 +164,7 @@ func main() {
 		log.Println("Game joined:", resp)
 
 		// Game loop
+		var beaconPos SC2APIProtocol.Point
 		for {
 			// Do we want to be done?
 			if quitRequested == true {
@@ -189,11 +191,12 @@ func main() {
 			respObs := resp.GetObservation()
 			// respObs.Actions - list of actions performed
 			// respObs.ActionErrors - list of actions which did not complete
-			// respObs.Observation - whole mess of observation data. see struct
+			// respObs.Observation - whole mess of observation data. see struct and notes below
 			// respObs.PlayerResult - result of game, only if ended that step
-			// respObs.Chat - chat messages received. could be fun
+			// respObs.Chat - chat messages received. could be fun. maybe take commands from chat?
 
 			obs := respObs.GetObservation()
+			rawData := obs.GetRawData()
 			// obs.PlayerCommon - looks like player state. minerals, vespene, units, etc. very useful
 			// obs.Alerts - critical end game actions like nuclear launch detected
 			// obs.Abilities - list of available abilities? unclear. definitiion of AvailableAbility is in common.pb.go
@@ -203,7 +206,11 @@ func main() {
 			// obs.RenderData - Full fidelity rendered image of the game. Not available yet
 			// obs.UiData - Also not available yet
 
-			log.Printf("step: %s", obs.PlayerCommon)
+			// Print our rough state of game every 10 steps
+			if obs.GetGameLoop()%10 == 0 {
+				log.Println(obs.PlayerCommon)
+				log.Printf("%s Score: %d", SC2APIProtocol.Score_ScoreType_name[int32(*obs.Score.ScoreType)], int32(*obs.Score.Score))
+			}
 
 			// Are we done?
 			if resp.GetStatus() == SC2APIProtocol.Status_ended {
@@ -212,17 +219,73 @@ func main() {
 				break
 			}
 
-			// Examine game state
-			for _, unit := range obs.RawData.Units {
-				if *unit.UnitType == 18 { // Command center
+			// Prep request for action in case we need it
+			req = &SC2APIProtocol.Request{
+				Request: &SC2APIProtocol.Request_Action{
+					Action: &SC2APIProtocol.RequestAction{},
+				},
+			}
+			action := req.GetAction()
 
+			// Examine game state
+			var unitType uint32
+			for _, unit := range rawData.Units {
+				unitType = unit.GetUnitType()
+				if unitType == 18 { // Command center
+
+				}
+				if unitType == 317 { // This appears to be the beacon from the minigame, but not listed anywhere
+					// TODO: Make this into a library function
+					if beaconPos.X != unit.Pos.X && beaconPos.Y != unit.Pos.Y && beaconPos.Z != unit.Pos.Z {
+						//log.Printf("Beacon %d found at %f,%f,%f", unit.GetTag(), *unit.Pos.X, *unit.Pos.Y, *unit.Pos.Z)
+						beaconPos = *unit.Pos
+					}
+				}
+				if unitType == 48 { // Marine
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						var abilityId int32 = 1 // "SMART". Could also be 16
+						a := &SC2APIProtocol.Action{
+							ActionRaw: &SC2APIProtocol.ActionRaw{
+								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+										AbilityId: &abilityId,
+										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+												X: beaconPos.X,
+												Y: beaconPos.Y,
+											},
+										},
+										UnitTags: []uint64{unit.GetTag()},
+									},
+								},
+							},
+						}
+						action.Actions = append(action.Actions, a)
+						log.Printf("Moving marine %d to beacon", unit.GetTag())
+						continue
+					}
 				}
 			}
 
-			// Send action
+			if len(action.Actions) > 0 {
+				// Send actions
+				err = protocol.SendRequest(req)
+				if err != nil {
+					log.Fatal("Could not send action request:", err)
+				}
+
+				resp, err = protocol.ReadResponse()
+				if err != nil {
+					log.Fatal("Could not receive action response:", err)
+				}
+
+				if len(resp.Error) > 0 {
+					log.Println(resp.Error)
+				}
+			}
 
 			// Keep this reasonably paced
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 
 		// Leave game
@@ -241,7 +304,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Could not receive leave response:", err)
 		}
-		log.Println("Game left:", resp)
+		log.Println("gg")
 	}
 
 	// Disconnect
@@ -251,7 +314,7 @@ func main() {
 		log.Fatal("Error disconnecting:", err)
 	}
 
-	log.Println("gg")
+	log.Println("BYE!")
 
 	// Extra requests I've tested
 	/*req = &SC2APIProtocol.Request{
@@ -265,3 +328,6 @@ func main() {
 		},
 	}*/
 }
+
+// List of unit/ability/upgrade/buff types:
+// https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
