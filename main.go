@@ -268,6 +268,7 @@ func main() {
 					// This is for "CollectMineralShards"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
 						target := FindClosestUnit(rawData.Units, unit, 1680) // mineral shard
+						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 							a := &SC2APIProtocol.Action{
