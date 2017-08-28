@@ -165,7 +165,6 @@ func main() {
 		log.Println("Game joined:", resp)
 
 		// Game loop
-		var beaconPos SC2APIProtocol.Point
 		for {
 			// Do we want to be done?
 			if quitRequested == true {
@@ -238,47 +237,37 @@ func main() {
 
 				}
 
-				if unitType == 317 { // This appears to be the beacon from the minigame, but not listed anywhere
-					// TODO: Make this into a library function
-					// This is for "MoveToBeacon"
-					if beaconPos.X == nil || *beaconPos.X != *unit.Pos.X || *beaconPos.Y != *unit.Pos.Y || *beaconPos.Z != *unit.Pos.Z {
-						log.Printf("Beacon %d found at %f,%f,%f", unit.GetTag(), *unit.Pos.X, *unit.Pos.Y, *unit.Pos.Z)
-						beaconPos = *unit.Pos
-					}
-				}
-
-				if unitType == 1680 { // This appears to be the mineral shard from the minigame, but not listed anywhere
-
-				}
-
 				if unitType == 48 { // Marine
 					// This is for "MoveToBeacon"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && beaconPos.X != nil {
-						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-												X: beaconPos.X,
-												Y: beaconPos.Y,
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						target := FindClosestUnit(rawData.Units, unit, 317) // beacon
+						if target != nil {
+							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+												TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+													X: target.Pos.X,
+													Y: target.Pos.Y,
+												},
 											},
+											UnitTags: []uint64{unit.GetTag()},
 										},
-										UnitTags: []uint64{unit.GetTag()},
 									},
 								},
-							},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Moving marine %d to beacon %d", unit.GetTag(), target.GetTag())
+							continue
 						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to beacon", unit.GetTag())
-						continue
 					}
 
 					// This is for "CollectMineralShards"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						target := FindClosestUnit(rawData.Units, unit, 1680)
+						target := FindClosestUnit(rawData.Units, unit, 1680) // mineral shard
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 							a := &SC2APIProtocol.Action{
