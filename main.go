@@ -350,6 +350,37 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters() == unit.GetAssignedHarvesters() {
+							target := FindClosestUnit(rawData.Units, unit, 45) // SCV
+							if target != nil {
+								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
+
+								offset := float32(15.0)
+								rx := float32(*target.Pos.X + rand.Float32()*offset)
+								ry := float32(*target.Pos.Y + rand.Float32()*offset)
+
+								a := &SC2APIProtocol.Action{
+									ActionRaw: &SC2APIProtocol.ActionRaw{
+										Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+											UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+												AbilityId: &abilityId,
+												Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+													TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+														X: &rx,
+														Y: &ry,
+													},
+												},
+												UnitTags: []uint64{target.GetTag()},
+											},
+										},
+									},
+								}
+								action.Actions = append(action.Actions, a)
+								log.Printf("SCV %d building command center at %f,%f", target.GetTag(), rx, ry)
+								continue
+							}
+						}
+
 						if obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() {
 							var abilityId int32 = 524 // "TRAIN_SCV"
 							a := &SC2APIProtocol.Action{
@@ -497,4 +528,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 4690
+// CollectMineralsAndGas: 5080
