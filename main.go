@@ -293,6 +293,34 @@ func main() {
 						}
 					}
 				}
+
+				if unitType == 45 { // TERRAN SCV
+					// This is for "CollectMineralsAndGas"
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						target := FindClosestUnit(rawData.Units, unit, 341) // mineral field
+						// TODO: Make sure this isn't already someone else's target, somehow
+						if target != nil {
+							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+												TargetUnitTag: target.GetTag(),
+											},
+											UnitTags: []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Moving SCV %d to mineral field %d", unit.GetTag(), target.GetTag())
+							continue
+						}
+					}
+
+				}
 			}
 
 			if len(action.Actions) > 0 {
@@ -403,3 +431,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
+// CollectMineralsAndGas: 2320
