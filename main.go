@@ -7,6 +7,7 @@ import (
 	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
@@ -294,6 +295,34 @@ func main() {
 				if unitType == 45 { // TERRAN SCV
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						if obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() == 0 {
+							var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
+
+							offset := float32(15.0)
+							rx := float32(*unit.Pos.X + rand.Float32()*offset)
+							ry := float32(*unit.Pos.Y + rand.Float32()*offset)
+
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+												TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+													X: &rx,
+													Y: &ry,
+												},
+											},
+											UnitTags: []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("SCV %d building supply depot at %f,%f", unit.GetTag(), rx, ry)
+							continue
+						}
+
 						target := FindClosestUnit(rawData.Units, unit, 341) // mineral field
 						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
@@ -321,20 +350,22 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						var abilityId int32 = 524 // "TRAIN_SCV"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
-										UnitTags:  []uint64{unit.GetTag()},
+						if obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() {
+							var abilityId int32 = 524 // "TRAIN_SCV"
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											UnitTags:  []uint64{unit.GetTag()},
+										},
 									},
 								},
-							},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Command center %d training SCV", unit.GetTag())
+							continue
 						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Command center %d training SCV", unit.GetTag())
-						continue
 					}
 				}
 
@@ -352,9 +383,7 @@ func main() {
 					log.Fatal("Could not receive action response:", err)
 				}
 
-				if len(resp.Error) > 0 {
-					log.Println(resp.Error)
-				}
+				log.Println(resp)
 			}
 
 			// Keep this reasonably paced
@@ -448,4 +477,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 3115
+// CollectMineralsAndGas: 4650
