@@ -369,6 +369,26 @@ func main() {
 					}
 				}
 
+				if unitType == 19 { // Supply depot
+					// This is for "CollectMineralsAndGas"
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 {
+						var abilityId int32 = 556 // "MORPH_SUPPLYDEPOT_LOWER"
+						a := &SC2APIProtocol.Action{
+							ActionRaw: &SC2APIProtocol.ActionRaw{
+								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+										AbilityId: &abilityId,
+										UnitTags:  []uint64{unit.GetTag()},
+									},
+								},
+							},
+						}
+						action.Actions = append(action.Actions, a)
+						log.Printf("Supply depot %d lowering", unit.GetTag())
+						continue
+					}
+				}
+
 			}
 
 			if len(action.Actions) > 0 {
@@ -477,4 +497,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 4650
+// CollectMineralsAndGas: 4690
