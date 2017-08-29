@@ -233,9 +233,6 @@ func main() {
 			var unitType uint32
 			for _, unit := range rawData.Units {
 				unitType = unit.GetUnitType()
-				if unitType == 18 { // Command center
-
-				}
 
 				if unitType == 48 { // Marine
 					// This is for "MoveToBeacon"
@@ -319,8 +316,28 @@ func main() {
 							continue
 						}
 					}
-
 				}
+
+				if unitType == 18 { // Terran command center
+					// This is for "CollectMineralsAndGas"
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						var abilityId int32 = 524 // "TRAIN_SCV"
+						a := &SC2APIProtocol.Action{
+							ActionRaw: &SC2APIProtocol.ActionRaw{
+								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+										AbilityId: &abilityId,
+										UnitTags:  []uint64{unit.GetTag()},
+									},
+								},
+							},
+						}
+						action.Actions = append(action.Actions, a)
+						log.Printf("Command center %d training SCV", unit.GetTag())
+						continue
+					}
+				}
+
 			}
 
 			if len(action.Actions) > 0 {
@@ -431,4 +448,4 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 2320
+// CollectMineralsAndGas: 3115
