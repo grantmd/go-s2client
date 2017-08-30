@@ -232,13 +232,14 @@ func main() {
 
 			// Examine game state
 			var unitType uint32
+			var target *SC2APIProtocol.Unit
 			for _, unit := range rawData.Units {
 				unitType = unit.GetUnitType()
 
 				if unitType == 48 { // Marine
 					// This is for "MoveToBeacon"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						target := FindClosestUnit(rawData.Units, unit, 317) // beacon
+						target = FindClosestUnit(rawData.Units, unit, 317) // beacon
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 							a := &SC2APIProtocol.Action{
@@ -265,7 +266,7 @@ func main() {
 
 					// This is for "CollectMineralShards"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						target := FindClosestUnit(rawData.Units, unit, 1680) // mineral shard
+						target = FindClosestUnit(rawData.Units, unit, 1680) // mineral shard
 						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
@@ -323,7 +324,7 @@ func main() {
 							continue
 						}
 
-						target := FindClosestUnit(rawData.Units, unit, 341) // mineral field
+						target = FindClosestUnit(rawData.Units, unit, 341) // mineral field
 						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
 							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
@@ -350,8 +351,8 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters() == unit.GetAssignedHarvesters() {
-							target := FindClosestUnit(rawData.Units, unit, 45) // SCV
+						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters() == unit.GetAssignedHarvesters()-2 {
+							target = FindClosestUnit(rawData.Units, unit, 45) // SCV
 							if target != nil {
 								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
 
@@ -520,6 +521,22 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 		}
 	}
 	return farthestUnit
+}
+
+func AnyUnitHasOrder(units []*SC2APIProtocol.Unit, desiredUnitType uint32, desiredAbilityID uint32) bool {
+	for _, unit := range units {
+		if unit.GetUnitType() != desiredUnitType {
+			continue
+		}
+
+		for _, order := range unit.GetOrders() {
+			if order.GetAbilityId() == desiredAbilityID {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // List of unit/ability/upgrade/buff types:
