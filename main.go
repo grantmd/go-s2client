@@ -296,7 +296,7 @@ func main() {
 				if unitType == 45 { // TERRAN SCV
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						if obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() == 0 {
+						if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
 
 							offset := float32(15.0)
@@ -321,6 +321,54 @@ func main() {
 							}
 							action.Actions = append(action.Actions, a)
 							log.Printf("SCV %d building supply depot at %f,%f", unit.GetTag(), rx, ry)
+							continue
+						}
+
+						if obs.PlayerCommon.GetMinerals() >= 75 && FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) == nil { // TODO: Way to find out cost programmatically?
+							if AnyUnitHasOrder(rawData.Units, 45, 320) == false { // Only build one at a time
+								target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
+								log.Println(target)
+								if target != nil {
+									var abilityId int32 = 320 // "BUILD_REFINERY"
+									a := &SC2APIProtocol.Action{
+										ActionRaw: &SC2APIProtocol.ActionRaw{
+											Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+												UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+													AbilityId: &abilityId,
+													Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+														TargetUnitTag: target.GetTag(),
+													},
+													UnitTags: []uint64{unit.GetTag()},
+												},
+											},
+										},
+									}
+									action.Actions = append(action.Actions, a)
+									log.Printf("SCV %d building refinery at %d", unit.GetTag(), target.GetTag())
+									continue
+								}
+							}
+						}
+
+						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 20) // terran refinery
+						if target != nil {
+							log.Println(target)
+							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+												TargetUnitTag: target.GetTag(),
+											},
+											UnitTags: []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Moving SCV %d to finery %d", unit.GetTag(), target.GetTag())
 							continue
 						}
 
@@ -351,12 +399,12 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters() == unit.GetAssignedHarvesters()-2 {
+						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()-5 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false {
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 							if target != nil {
 								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
 
-								offset := float32(15.0)
+								offset := float32(50.0)
 								rx := float32(*target.Pos.X + rand.Float32()*offset)
 								ry := float32(*target.Pos.Y + rand.Float32()*offset)
 
@@ -382,7 +430,7 @@ func main() {
 							}
 						}
 
-						if obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() {
+						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 524 // "TRAIN_SCV"
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -554,4 +602,4 @@ func AnyUnitHasOrder(units []*SC2APIProtocol.Unit, desiredUnitType uint32, desir
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 5080
+// CollectMineralsAndGas: 5145
