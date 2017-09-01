@@ -398,13 +398,13 @@ func main() {
 
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()-5 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false {
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
+						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 {
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 							if target != nil {
 								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
 
-								offset := float32(50.0)
+								offset := float32(15.0)
 								rx := float32(*target.Pos.X + rand.Float32()*offset)
 								ry := float32(*target.Pos.Y + rand.Float32()*offset)
 
@@ -430,7 +430,7 @@ func main() {
 							}
 						}
 
-						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
+						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() && unit.GetIdealHarvesters() > unit.GetAssignedHarvesters() { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 524 // "TRAIN_SCV"
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -596,10 +596,27 @@ func AnyUnitHasOrder(units []*SC2APIProtocol.Unit, desiredUnitType uint32, desir
 	return false
 }
 
+func CountUnitsOfType(units []*SC2APIProtocol.Unit, desiredAlliance SC2APIProtocol.Alliance, desiredUnitType uint32) uint32 {
+	var count uint32
+	for _, unit := range units {
+		if unit.GetUnitType() != desiredUnitType {
+			continue
+		}
+
+		if unit.GetAlliance() != desiredAlliance {
+			continue
+		}
+
+		count++
+	}
+
+	return count
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
 
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 5145
+// CollectMineralsAndGas: 5535
