@@ -295,7 +295,7 @@ func main() {
 
 				if unitType == 45 { // TERRAN SCV
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self {
 						if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
 
@@ -324,74 +324,78 @@ func main() {
 							continue
 						}
 
-						if obs.PlayerCommon.GetMinerals() >= 75 && FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) == nil { // TODO: Way to find out cost programmatically?
-							if AnyUnitHasOrder(rawData.Units, 45, 320) == false { // Only build one at a time
-								target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
-								log.Println(target)
-								if target != nil {
-									var abilityId int32 = 320 // "BUILD_REFINERY"
-									a := &SC2APIProtocol.Action{
-										ActionRaw: &SC2APIProtocol.ActionRaw{
-											Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-												UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-													AbilityId: &abilityId,
-													Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
-														TargetUnitTag: target.GetTag(),
+						if len(unit.GetOrders()) == 0 {
+							if obs.PlayerCommon.GetMinerals() >= 75 { // TODO: Way to find out cost programmatically?
+								if AnyUnitHasOrder(rawData.Units, 45, 320) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 20) < 1 { // Only build one at a time
+									// TODO: Somehow these are still here even with refineries on top. How to tell?
+									target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
+									log.Println("============= GEYSER ===============")
+									log.Println(target)
+									if target != nil {
+										var abilityId int32 = 320 // "BUILD_REFINERY"
+										a := &SC2APIProtocol.Action{
+											ActionRaw: &SC2APIProtocol.ActionRaw{
+												Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+													UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+														AbilityId: &abilityId,
+														Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+															TargetUnitTag: target.GetTag(),
+														},
+														UnitTags: []uint64{unit.GetTag()},
 													},
-													UnitTags: []uint64{unit.GetTag()},
 												},
 											},
-										},
+										}
+										action.Actions = append(action.Actions, a)
+										log.Printf("SCV %d building refinery at %d", unit.GetTag(), target.GetTag())
+										continue
 									}
-									action.Actions = append(action.Actions, a)
-									log.Printf("SCV %d building refinery at %d", unit.GetTag(), target.GetTag())
-									continue
 								}
 							}
-						}
 
-						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 20) // terran refinery
-						if target != nil {
-							log.Println(target)
-							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
-							a := &SC2APIProtocol.Action{
-								ActionRaw: &SC2APIProtocol.ActionRaw{
-									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-											AbilityId: &abilityId,
-											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
-												TargetUnitTag: target.GetTag(),
+							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 20) // terran refinery
+							if target != nil && target.GetAssignedHarvesters() < target.GetIdealHarvesters() {
+								log.Println("============= REFINERY ===============")
+								log.Println(target)
+								var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+								a := &SC2APIProtocol.Action{
+									ActionRaw: &SC2APIProtocol.ActionRaw{
+										Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+											UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+												AbilityId: &abilityId,
+												Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+													TargetUnitTag: target.GetTag(),
+												},
+												UnitTags: []uint64{unit.GetTag()},
 											},
-											UnitTags: []uint64{unit.GetTag()},
 										},
 									},
-								},
+								}
+								action.Actions = append(action.Actions, a)
+								log.Printf("Moving SCV %d to finery %d", unit.GetTag(), target.GetTag())
+								continue
 							}
-							action.Actions = append(action.Actions, a)
-							log.Printf("Moving SCV %d to finery %d", unit.GetTag(), target.GetTag())
-							continue
-						}
 
-						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 341) // mineral field
-						// TODO: Make sure this isn't already someone else's target, somehow
-						if target != nil {
-							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
-							a := &SC2APIProtocol.Action{
-								ActionRaw: &SC2APIProtocol.ActionRaw{
-									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-											AbilityId: &abilityId,
-											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
-												TargetUnitTag: target.GetTag(),
+							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 341) // mineral field
+							if target != nil && target.GetAssignedHarvesters() < 2 {
+								var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+								a := &SC2APIProtocol.Action{
+									ActionRaw: &SC2APIProtocol.ActionRaw{
+										Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+											UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+												AbilityId: &abilityId,
+												Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+													TargetUnitTag: target.GetTag(),
+												},
+												UnitTags: []uint64{unit.GetTag()},
 											},
-											UnitTags: []uint64{unit.GetTag()},
 										},
 									},
-								},
+								}
+								action.Actions = append(action.Actions, a)
+								log.Printf("Moving SCV %d to mineral field %d", unit.GetTag(), target.GetTag())
+								continue
 							}
-							action.Actions = append(action.Actions, a)
-							log.Printf("Moving SCV %d to mineral field %d", unit.GetTag(), target.GetTag())
-							continue
 						}
 					}
 				}
@@ -399,12 +403,12 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
-						if unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 {
+						if obs.PlayerCommon.GetMinerals() >= 400 && unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 { // TODO: Way to find out cost programmatically?
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 							if target != nil {
 								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
 
-								offset := float32(15.0)
+								offset := float32(20.0)
 								rx := float32(*target.Pos.X + rand.Float32()*offset)
 								ry := float32(*target.Pos.Y + rand.Float32()*offset)
 
@@ -619,4 +623,4 @@ func CountUnitsOfType(units []*SC2APIProtocol.Unit, desiredAlliance SC2APIProtoc
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 5535
+// CollectMineralsAndGas: 5546
