@@ -326,12 +326,9 @@ func main() {
 
 						if len(unit.GetOrders()) == 0 {
 							if obs.PlayerCommon.GetMinerals() >= 75 { // TODO: Way to find out cost programmatically?
-								if AnyUnitHasOrder(rawData.Units, 45, 320) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 20) < 1 { // Only build one at a time
-									// TODO: Somehow these are still here even with refineries on top. How to tell?
+								if AnyUnitHasOrder(rawData.Units, 45, 320) == false { // Only build one at a time
 									target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
-									log.Println("============= GEYSER ===============")
-									log.Println(target)
-									if target != nil {
+									if target != nil && IsUnitTypeAtPoint(rawData.Units, 20, *target.GetPos()) == false {
 										var abilityId int32 = 320 // "BUILD_REFINERY"
 										a := &SC2APIProtocol.Action{
 											ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -355,8 +352,6 @@ func main() {
 
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 20) // terran refinery
 							if target != nil && target.GetAssignedHarvesters() < target.GetIdealHarvesters() {
-								log.Println("============= REFINERY ===============")
-								log.Println(target)
 								var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
 								a := &SC2APIProtocol.Action{
 									ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -617,10 +612,25 @@ func CountUnitsOfType(units []*SC2APIProtocol.Unit, desiredAlliance SC2APIProtoc
 	return count
 }
 
+func IsUnitTypeAtPoint(units []*SC2APIProtocol.Unit, desiredUnitType uint32, point SC2APIProtocol.Point) bool {
+	for _, unit := range units {
+		if unit.GetUnitType() != desiredUnitType {
+			continue
+		}
+
+		unitPos := unit.GetPos()
+		if unitPos.GetX() == point.GetX() && unitPos.GetY() == point.GetY() && unitPos.GetZ() == point.GetZ() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
 
 // Best Scores:
 // MoveToBeacon: 27
 // CollectMineralShards: 104
-// CollectMineralsAndGas: 5546
+// CollectMineralsAndGas: 5986
