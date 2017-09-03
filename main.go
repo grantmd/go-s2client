@@ -11,13 +11,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 var addr = flag.String("addr", "localhost:5000", "sc2api server address")
 var listMaps = flag.Bool("listMaps", false, "list available maps")
 var mapName = flag.String("mapName", "", "name of battlenet map to play")
 var mapPath = flag.String("mapPath", "", "path of local map to play")
+var realtime = flag.Bool("realtime", false, "run the game in realtime")
 
 var quitRequested bool
 
@@ -105,7 +105,7 @@ func main() {
 						},
 						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 						DisableFog:  proto.Bool(false),
-						Realtime:    proto.Bool(true),
+						Realtime:    realtime,
 					},
 				},
 			}
@@ -121,7 +121,7 @@ func main() {
 						},
 						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 						DisableFog:  proto.Bool(false),
-						Realtime:    proto.Bool(true),
+						Realtime:    realtime,
 					},
 				},
 			}
@@ -486,7 +486,28 @@ func main() {
 			}
 
 			// Keep this reasonably paced
-			time.Sleep(100 * time.Millisecond)
+			//time.Sleep(100 * time.Millisecond)
+
+			if *realtime == false {
+				// Prep request for action in case we need it
+				req = &SC2APIProtocol.Request{
+					Request: &SC2APIProtocol.Request_Step{
+						Step: &SC2APIProtocol.RequestStep{
+							Count: proto.Uint32(1),
+						},
+					},
+				}
+
+				err = protocol.SendRequest(req)
+				if err != nil {
+					log.Fatal("Could not send step request:", err)
+				}
+
+				resp, err = protocol.ReadResponse()
+				if err != nil {
+					log.Fatal("Could not receive step response:", err)
+				}
+			}
 		}
 
 		// Leave game
