@@ -347,6 +347,36 @@ func main() {
 						}
 
 						if len(unit.GetOrders()) == 0 {
+							if obs.PlayerCommon.GetMinerals() >= 150 && (isMultiplayer || *mapPath == "BuildMarines.SC2Map") && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 21) == 0 { // TODO: Way to find out cost programmatically? Check available actions instead of map name
+								if AnyUnitHasOrder(rawData.Units, 45, 321) == false { // Only build one at a time
+									var abilityId int32 = 321 // "BUILD_BARRACKS"
+
+									offset := float32(30.0)
+									rx := float32(*unit.Pos.X + rand.Float32()*offset)
+									ry := float32(*unit.Pos.Y + rand.Float32()*offset)
+
+									a := &SC2APIProtocol.Action{
+										ActionRaw: &SC2APIProtocol.ActionRaw{
+											Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+												UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+													AbilityId: &abilityId,
+													Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+														TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+															X: &rx,
+															Y: &ry,
+														},
+													},
+													UnitTags: []uint64{unit.GetTag()},
+												},
+											},
+										},
+									}
+									action.Actions = append(action.Actions, a)
+									log.Printf("SCV %d building barracks at %f,%f", unit.GetTag(), rx, ry)
+									continue
+								}
+							}
+
 							if obs.PlayerCommon.GetMinerals() >= 75 { // TODO: Way to find out cost programmatically?
 								if AnyUnitHasOrder(rawData.Units, 45, 320) == false { // Only build one at a time
 									target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
@@ -490,6 +520,27 @@ func main() {
 					}
 				}
 
+				if unitType == 21 { // Barracks
+					// This is for "BuildMarines" (or any multiplayer map)
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
+						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
+							var abilityId int32 = 48 // "TRAIN_MARINE"
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											UnitTags:  []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Barracks %d training marine", unit.GetTag())
+							continue
+						}
+					}
+				}
 			}
 
 			if len(action.Actions) > 0 {
@@ -687,3 +738,4 @@ func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
 // MoveToBeacon: 27
 // CollectMineralShards: 109
 // CollectMineralsAndGas: 5986
+// BuildMarines: 0
