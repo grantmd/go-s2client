@@ -481,7 +481,7 @@ func main() {
 							}
 						}
 
-						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() && unit.GetIdealHarvesters() > unit.GetAssignedHarvesters() { // TODO: Way to find out cost programmatically?
+						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() && unit.GetIdealHarvesters() >= unit.GetAssignedHarvesters() { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 524 // "TRAIN_SCV"
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -524,7 +524,7 @@ func main() {
 					// This is for "BuildMarines" (or any multiplayer map)
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
 						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
-							var abilityId int32 = 48 // "TRAIN_MARINE"
+							var abilityId int32 = 560 // "TRAIN_MARINE"
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
 									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
@@ -738,4 +738,4 @@ func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
 // MoveToBeacon: 27
 // CollectMineralShards: 109
 // CollectMineralsAndGas: 5986
-// BuildMarines: 0
+// BuildMarines: 30
