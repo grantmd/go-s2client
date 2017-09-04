@@ -20,6 +20,7 @@ var mapPath = flag.String("mapPath", "", "path of local map to play")
 var realtime = flag.Bool("realtime", false, "run the game in realtime")
 
 var quitRequested bool
+var isMultiplayer bool
 
 func main() {
 	// Setup signal handling
@@ -164,6 +165,27 @@ func main() {
 			log.Fatal("Could not receive join game response:", err)
 		}
 		log.Println("Game joined:", resp)
+
+		// Get game info
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_GameInfo{
+				GameInfo: &SC2APIProtocol.RequestGameInfo{},
+			},
+		}
+		log.Println("Requesting game info…")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send game info request:", err)
+		}
+
+		resp, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive game info response:", err)
+		}
+		if len(resp.GetGameInfo().PlayerInfo) > 1 {
+			isMultiplayer = true
+			log.Println("Game is multiplayer")
+		}
 
 		// Game loop
 		for {
@@ -398,7 +420,7 @@ func main() {
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
-						if obs.PlayerCommon.GetMinerals() >= 400 && unit.GetAssignedHarvesters() > 0 && unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 { // TODO: Way to find out cost programmatically?
+						if obs.PlayerCommon.GetMinerals() >= 400 && unit.GetAssignedHarvesters() > 0 && ((unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && *mapPath == "CollectMineralsAndGas.SC2Map") || unit.GetIdealHarvesters() <= unit.GetAssignedHarvesters()) && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 { // TODO: Way to find out cost programmatically?
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 							if target != nil {
 								var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
@@ -450,7 +472,7 @@ func main() {
 
 				if unitType == 19 { // Supply depot
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 {
+					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 && *mapPath != "BuildMarines.SC2Map" { // TODO: Check available actions instead of map name
 						var abilityId int32 = 556 // "MORPH_SUPPLYDEPOT_LOWER"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
