@@ -296,7 +296,7 @@ func main() {
 				if unitType == 45 { // TERRAN SCV
 					// This is for "CollectMineralsAndGas"
 					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self {
-						if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false { // TODO: Way to find out cost programmatically?
+						if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false && HasActionQueued(action.Actions, 319) == false { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
 
 							offset := float32(15.0)
@@ -648,10 +648,20 @@ func IsUnitTypeAtPoint(units []*SC2APIProtocol.Unit, desiredUnitType uint32, poi
 	return false
 }
 
+func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
+	for _, action := range actions {
+		if action.ActionRaw.GetUnitCommand().GetAbilityId() == abilityID {
+			return true
+		}
+	}
+
+	return false
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
 
 // Best Scores:
 // MoveToBeacon: 27
-// CollectMineralShards: 104
+// CollectMineralShards: 109
 // CollectMineralsAndGas: 5986
