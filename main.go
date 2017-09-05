@@ -765,6 +765,26 @@ func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
 	return false
 }
 
+func AbilityIsAvailable(desiredAbilityID uint32) (bool, error) {
+	for _, ability := range abilities {
+		if ability.GetAbilityId() == desiredAbilityID {
+			return ability.GetAvailable(), nil
+		}
+	}
+
+	return false, errors.New("Ability not found")
+}
+
+func GetAbilityFootprintRadius(desiredAbilityID uint32) (float32, error) {
+	for _, ability := range abilities {
+		if ability.GetAbilityId() == desiredAbilityID {
+			return ability.GetFootprintRadius(), nil
+		}
+	}
+
+	return 0, errors.New("Ability not found")
+}
+
 func UnitIsAvailable(desiredUnitType uint32) (bool, error) {
 	for _, unit := range units {
 		if unit.GetUnitId() == desiredUnitType {
