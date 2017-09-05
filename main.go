@@ -22,10 +22,10 @@ var realtime = flag.Bool("realtime", false, "run the game in realtime")
 var quitRequested bool
 var isMultiplayer bool
 
-var abilities []*SC2APIProtocol.AbilityData // Most Useful: Available, FootprintRadius
-var units []*SC2APIProtocol.UnitTypeData    // Most Useful: Available, MineralCost, VespeneCost, FoodRequired
-var upgrades []*SC2APIProtocol.UpgradeData  // Most Useful: MineralCost, VespeneCost
-var buffs []*SC2APIProtocol.BuffData
+var abilities []*SC2APIProtocol.AbilityData // Most Useful: AbilityId, Available, FootprintRadius
+var units []*SC2APIProtocol.UnitTypeData    // Most Useful: UnitId, Available, MineralCost, VespeneCost, FoodRequired
+var upgrades []*SC2APIProtocol.UpgradeData  // Most Useful: UpgradeId, MineralCost, VespeneCost
+var buffs []*SC2APIProtocol.BuffData        // Most Useful: BuffId
 
 func main() {
 	// Setup signal handling
