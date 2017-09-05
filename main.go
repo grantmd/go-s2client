@@ -22,6 +22,11 @@ var realtime = flag.Bool("realtime", false, "run the game in realtime")
 var quitRequested bool
 var isMultiplayer bool
 
+var abilities []*SC2APIProtocol.AbilityData
+var units []*SC2APIProtocol.UnitTypeData
+var upgrades []*SC2APIProtocol.UpgradeData
+var buffs []*SC2APIProtocol.BuffData
+
 func main() {
 	// Setup signal handling
 	quitRequested = false
@@ -186,6 +191,34 @@ func main() {
 			isMultiplayer = true
 			log.Println("Game is multiplayer")
 		}
+		log.Println("Game data received")
+
+		// Get game data
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_Data{
+				Data: &SC2APIProtocol.RequestData{
+					AbilityId:  proto.Bool(true),
+					UnitTypeId: proto.Bool(true),
+					UpgradeId:  proto.Bool(true),
+					BuffId:     proto.Bool(true),
+				},
+			},
+		}
+		log.Println("Requesting game data")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send game data request:", err)
+		}
+
+		resp, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive game data response:", err)
+		}
+		abilities = resp.GetData().GetAbilities()
+		units = resp.GetData().GetUnits()
+		upgrades = resp.GetData().GetUpgrades()
+		buffs = resp.GetData().GetBuffs()
+		log.Println("Game data received")
 
 		// Game loop
 		for {
