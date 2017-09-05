@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/proto"
@@ -762,6 +763,36 @@ func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
 	}
 
 	return false
+}
+
+func UnitIsAvailable(desiredUnitType uint32) (bool, error) {
+	for _, unit := range units {
+		if unit.GetUnitId() == desiredUnitType {
+			return unit.GetAvailable(), nil
+		}
+	}
+
+	return false, errors.New("Unit type not found")
+}
+
+func GetUnitMineralCost(desiredUnitType uint32) (uint32, error) {
+	for _, unit := range units {
+		if unit.GetUnitId() == desiredUnitType {
+			return unit.GetMineralCost(), nil
+		}
+	}
+
+	return 0, errors.New("Unit type not found")
+}
+
+func GetUnitVespeneCost(desiredUnitType uint32) (uint32, error) {
+	for _, unit := range units {
+		if unit.GetUnitId() == desiredUnitType {
+			return unit.GetVespeneCost(), nil
+		}
+	}
+
+	return 0, errors.New("Unit type not found")
 }
 
 // List of unit/ability/upgrade/buff types:
