@@ -28,6 +28,8 @@ var units []*SC2APIProtocol.UnitTypeData    // Most Useful: UnitId, Available, M
 var upgrades []*SC2APIProtocol.UpgradeData  // Most Useful: UpgradeId, MineralCost, VespeneCost
 var buffs []*SC2APIProtocol.BuffData        // Most Useful: BuffId
 
+var mapUnits [][]uint32
+
 func main() {
 	// Setup signal handling
 	quitRequested = false
@@ -192,6 +194,18 @@ func main() {
 			isMultiplayer = true
 			log.Println("Game is multiplayer")
 		}
+		// TODO: StartRaw has tons of map data in raw.pb.go
+		// Need to figure out what ImageData.Data is. Unit type per map unit? Top to bottom or left to right?
+		// PathingGrid might be great for figuring out where to send units, but the game kind of figures this out for us
+		// PlacementGrid is maybe indicative of where units are on map start?
+		// PlayableArea is maybe where units are placeable vs full map size?
+		mapX := resp.GetGameInfo().GetStartRaw().GetMapSize().GetX()
+		mapY := resp.GetGameInfo().GetStartRaw().GetMapSize().GetY()
+		mapUnits := make([][]uint32, mapY)
+		for i := range mapUnits {
+			mapUnits[i] = make([]uint32, mapX)
+		}
+
 		log.Println("Game data received")
 
 		// Get game data
