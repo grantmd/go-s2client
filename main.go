@@ -235,6 +235,8 @@ func main() {
 		buffs = resp.GetData().GetBuffs()
 		log.Println("Game data received")
 
+		// TODO: Grab all units now and record on the map where they are?
+
 		// Game loop
 		for {
 			// Do we want to be done?
