@@ -304,13 +304,15 @@ func main() {
 
 			// Examine game state
 			var unitType uint32
+			var alliance SC2APIProtocol.Alliance
 			var target *SC2APIProtocol.Unit
 			for _, unit := range rawData.Units {
 				unitType = unit.GetUnitType()
+				alliance = unit.GetAlliance()
 
 				if unitType == 48 { // Marine
 					// This is for "MoveToBeacon"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 317) // beacon
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
@@ -337,7 +339,7 @@ func main() {
 					}
 
 					// This is for "CollectMineralShards"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 1680) // mineral shard
 						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
@@ -367,7 +369,7 @@ func main() {
 
 				if unitType == 45 { // TERRAN SCV
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self {
+					if alliance == SC2APIProtocol.Alliance_Self {
 						if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false && HasActionQueued(action.Actions, 319) == false { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
 
@@ -499,7 +501,7 @@ func main() {
 
 				if unitType == 18 { // Terran command center
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
+					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
 						if obs.PlayerCommon.GetMinerals() >= 400 && unit.GetAssignedHarvesters() > 0 && ((unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() && *mapPath == "CollectMineralsAndGas.SC2Map") || unit.GetIdealHarvesters() <= unit.GetAssignedHarvesters()) && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1 { // TODO: Way to find out cost programmatically?
 							target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 							if target != nil {
@@ -552,7 +554,7 @@ func main() {
 
 				if unitType == 19 { // Supply depot
 					// This is for "CollectMineralsAndGas"
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 && *mapPath != "BuildMarines.SC2Map" { // TODO: Check available actions instead of map name
+					if alliance == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 && *mapPath != "BuildMarines.SC2Map" { // TODO: Check available actions instead of map name
 						var abilityId int32 = 556 // "MORPH_SUPPLYDEPOT_LOWER"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
@@ -572,7 +574,7 @@ func main() {
 
 				if unitType == 21 { // Barracks
 					// This is for "BuildMarines" (or any multiplayer map)
-					if unit.GetAlliance() == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
+					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
 						if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
 							var abilityId int32 = 560 // "TRAIN_MARINE"
 							a := &SC2APIProtocol.Action{
