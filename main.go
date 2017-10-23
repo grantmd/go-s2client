@@ -883,3 +883,5 @@ func FindClosestAnyEnemy(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.U
 // CollectMineralsAndGas: 5986
 // BuildMarines: 30
 // DefeatZerglingsAndBanelings: 67
+// DefeatRoaches: 46
+// FindAndDefeatZerglings: 10
