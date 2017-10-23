@@ -385,6 +385,31 @@ func main() {
 							log.Printf("Moving marine %d to attack enemy %d of type %d", unit.GetTag(), target.GetTag(), target.GetUnitType())
 							continue
 						}
+
+						// Explore randomly (TODO: Could maybe better explore together)
+						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+						offset := float32(32.0)
+						rx := float32(*unit.Pos.X + rand.Float32()*offset)
+						ry := float32(*unit.Pos.Y + rand.Float32()*offset)
+						a := &SC2APIProtocol.Action{
+							ActionRaw: &SC2APIProtocol.ActionRaw{
+								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+										AbilityId: &abilityId,
+										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
+											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
+												X: &rx,
+												Y: &ry,
+											},
+										},
+										UnitTags: []uint64{unit.GetTag()},
+									},
+								},
+							},
+						}
+						action.Actions = append(action.Actions, a)
+						log.Printf("Moving marine %d to explore at %f,%f", unit.GetTag(), rx, ry)
+						continue
 					}
 				}
 
