@@ -311,8 +311,9 @@ func main() {
 				alliance = unit.GetAlliance()
 
 				if unitType == 48 { // Marine
-					// This is for "MoveToBeacon"
 					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+
+						// This is for "MoveToBeacon"
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 317) // beacon
 						if target != nil {
 							var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
@@ -336,10 +337,8 @@ func main() {
 							log.Printf("Moving marine %d to beacon %d", unit.GetTag(), target.GetTag())
 							continue
 						}
-					}
 
-					// This is for "CollectMineralShards"
-					if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
+						// This is for "CollectMineralShards"
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 1680) // mineral shard
 						// TODO: Make sure this isn't already someone else's target, somehow
 						if target != nil {
@@ -362,6 +361,28 @@ func main() {
 							}
 							action.Actions = append(action.Actions, a)
 							log.Printf("Moving marine %d to mineral shard %d", unit.GetTag(), target.GetTag())
+							continue
+						}
+
+						// Attack any enemy we can see
+						target = FindClosestAnyEnemy(rawData.Units, unit)
+						if target != nil {
+							var abilityId int32 = 3674 // "ATTACK".
+							a := &SC2APIProtocol.Action{
+								ActionRaw: &SC2APIProtocol.ActionRaw{
+									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
+										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
+											AbilityId: &abilityId,
+											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
+												TargetUnitTag: target.GetTag(),
+											},
+											UnitTags: []uint64{unit.GetTag()},
+										},
+									},
+								},
+							}
+							action.Actions = append(action.Actions, a)
+							log.Printf("Moving marine %d to attack enemy %d of type %d", unit.GetTag(), target.GetTag(), target.GetUnitType())
 							continue
 						}
 					}
@@ -833,6 +854,26 @@ func GetUnitVespeneCost(desiredUnitType uint32) (uint32, error) {
 	return 0, errors.New("Unit type not found")
 }
 
+func FindClosestAnyEnemy(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit) *SC2APIProtocol.Unit {
+	var closestUnit *SC2APIProtocol.Unit
+	var bestDistance float64
+	for _, unit := range units {
+		if unit.GetAlliance() != SC2APIProtocol.Alliance_Enemy {
+			continue
+		}
+
+		dx := float64(*ourUnit.Pos.X - *unit.Pos.X)
+		dy := float64(*ourUnit.Pos.Y - *unit.Pos.Y)
+		distance := math.Sqrt(math.Pow(dx, 2) + math.Pow(dy, 2))
+
+		if distance < bestDistance || bestDistance == 0 {
+			bestDistance = distance
+			closestUnit = unit
+		}
+	}
+	return closestUnit
+}
+
 // List of unit/ability/upgrade/buff types:
 // https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h
 
@@ -841,3 +882,4 @@ func GetUnitVespeneCost(desiredUnitType uint32) (uint32, error) {
 // CollectMineralShards: 109
 // CollectMineralsAndGas: 5986
 // BuildMarines: 30
+// DefeatZerglingsAndBanelings: 67
