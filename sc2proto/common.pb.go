@@ -30,6 +30,7 @@ It has these top-level messages:
 	UnitTypeData
 	UpgradeData
 	BuffData
+	EffectData
 	DebugCommand
 	DebugDraw
 	Line
@@ -44,7 +45,6 @@ It has these top-level messages:
 	DebugSetScore
 	DebugEndGame
 	DebugSetUnitValue
-	DebugChat
 	RequestQuery
 	ResponseQuery
 	RequestQueryPathing
@@ -61,11 +61,12 @@ It has these top-level messages:
 	PassengerUnit
 	Unit
 	MapState
+	Event
+	Effect
 	ActionRaw
 	ActionRawUnitCommand
 	ActionRawCameraMove
 	ActionRawToggleAutocast
-	Event
 	Request
 	Response
 	RequestCreateGame
@@ -93,6 +94,8 @@ It has these top-level messages:
 	ChatReceived
 	RequestAction
 	ResponseAction
+	RequestObserverAction
+	ResponseObserverAction
 	RequestStep
 	ResponseStep
 	RequestData
@@ -119,6 +122,11 @@ It has these top-level messages:
 	Action
 	ActionChat
 	ActionError
+	ObserverAction
+	ActionObserverPlayerPerspective
+	ActionObserverCameraMove
+	ActionObserverCameraFollowPlayer
+	ActionObserverCameraFollowUnits
 	PlayerResult
 	Score
 	CategoryScoreDetails
