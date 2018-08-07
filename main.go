@@ -147,6 +147,7 @@ func main() {
 			log.Fatal("Could not receive game start response:", err)
 		}
 		log.Println("Game started:", resp)
+		// TODO: Handle this: "Game started: create_game:<error:InvalidMapPath error_details:"map_path '/SC2/StarCraftII/maps/CollectMineralsAndGas.SC2Map' file doesn't exist." > status:launched"
 
 		// Join the game
 		req = &SC2APIProtocol.Request{
