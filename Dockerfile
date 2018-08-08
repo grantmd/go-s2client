@@ -51,6 +51,8 @@ RUN rm SC2.4.1.2.60604_2018_05_16.zip
 
 VOLUME ["/maps"]
 
+RUN ln -s /maps/ /SC2/StarCraftII/maps
+
 EXPOSE 12000
 ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base60321/SC2_x64", \
     "-listen", \

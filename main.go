@@ -1,5 +1,10 @@
 package main
 
+//
+// TODOs:
+// - Capture ctrl+C and quit
+//
+
 import (
 	"errors"
 	"flag"
