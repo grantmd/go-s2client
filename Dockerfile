@@ -19,16 +19,7 @@ COPY downloads/SC2.4.1.2.60604_2018_05_16.zip .
 
 # Unzip the game
 RUN unzip -Piagreetotheeula SC2.4.1.2.60604_2018_05_16.zip
-
-# Unzip all the maps
-# TODO: Mount as volume instead
-#RUN unzip -Piagreetotheeula -nj 3.16.1-Pack_1-fix.zip -d StarCraftII/Maps
-##RUN unzip -Piagreetotheeula -nj 3.16.1-Pack_2.zip -d StarCraftII/Maps
-
-# Delete everything
 RUN rm SC2.4.1.2.60604_2018_05_16.zip
-##RUN rm 3.16.1-Pack_2.zip
-#RUN rm 3.16.1-Pack_1-fix.zip
 
 VOLUME ["/maps"]
 

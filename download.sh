@@ -31,6 +31,9 @@ for i in `ls -1 {Ladder,Melee,mini_games}*.zip`; do
     unzip -Piagreetotheeula -nj -d maps $i
 done
 
+#unzip -Piagreetotheeula -nj -d replays 3.16.1-Pack_1-fix.zip
+#unzip -Piagreetotheeula -nj -d replays 3.16.1-Pack_2.zip
+
 cp -r s2client-api/maps/*/* maps
 
 popd
