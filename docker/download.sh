@@ -1,13 +1,24 @@
 #!/bin/bash
 
+pushd 3.16.1
+wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.3.16.1.zip
+popd
+
+pushd 3.17
+wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.3.17.zip
+popd
+
+pushd 4.0.2
+wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.4.0.2.zip
+popd
+
+pushd 4.1.2
+wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.4.1.2.60604_2018_05_16.zip
+popd
+
 mkdir -p downloads/
 
 pushd downloads
-
-wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.3.16.1.zip
-wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.3.17.zip
-wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.4.0.2.zip
-wget --continue http://blzdistsc2-a.akamaihd.net/Linux/SC2.4.1.2.60604_2018_05_16.zip
 
 wget --continue http://blzdistsc2-a.akamaihd.net/MapPacks/Ladder2017Season1.zip
 wget --continue http://blzdistsc2-a.akamaihd.net/MapPacks/Ladder2017Season2.zip

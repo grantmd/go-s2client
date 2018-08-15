@@ -15,6 +15,10 @@
 
 # Downloads
 docker/downloads/
+docker/3.16.1/SC2.3.16.1.zip
+docker/3.17/SC2.3.17.zip
+docker/4.0.2/SC2.4.0.2.zip
+docker/4.1.2/SC2.4.1.2.60604_2018_05_16.zip
 
 # Main binary
 go-s2client

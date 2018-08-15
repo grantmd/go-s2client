@@ -10,11 +10,11 @@ RUN \
   rm -rf /var/lib/apt
 
 WORKDIR /SC2
-COPY downloads/SC2.4.1.2.60604_2018_05_16.zip .
+COPY SC2.4.0.2.zip .
 
 # Unzip the game
-RUN unzip -Piagreetotheeula SC2.4.1.2.60604_2018_05_16.zip
-RUN rm SC2.4.1.2.60604_2018_05_16.zip
+RUN unzip -Piagreetotheeula SC2.4.0.2.zip
+RUN rm SC2.4.0.2.zip
 
 VOLUME ["/maps"]
 
