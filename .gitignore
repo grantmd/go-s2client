@@ -14,7 +14,7 @@
 .glide/
 
 # Downloads
-downloads/
+docker/downloads/
 
 # Main binary
 go-s2client
