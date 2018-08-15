@@ -699,11 +699,12 @@ func main() {
 			log.Fatal("Could not send leave request:", err)
 		}
 
-		_, err = protocol.ReadResponse()
+		resp, err = protocol.ReadResponse()
 		if err != nil {
 			log.Fatal("Could not receive leave response:", err)
 		}
 		log.Println("gg")
+		log.Println(resp)
 	}
 
 	// Disconnect
