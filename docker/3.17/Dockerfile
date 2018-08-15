@@ -21,7 +21,7 @@ VOLUME ["/maps"]
 RUN ln -s /maps/ /SC2/StarCraftII/maps
 
 EXPOSE 12000
-ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base60321/SC2_x64", \
+ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base56787/SC2_x64", \
     "-listen", \
     "0.0.0.0", \
     "-port", \
