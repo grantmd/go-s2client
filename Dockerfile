@@ -5,7 +5,9 @@ RUN \
   apt-get update && \
   apt-get -y upgrade && \
   apt-get install -y \
-    unzip
+    unzip && \
+  apt-get clean && \
+  rm -rf /var/lib/apt
 
 WORKDIR /SC2
 COPY downloads/SC2.4.1.2.60604_2018_05_16.zip .
