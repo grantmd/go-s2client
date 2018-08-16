@@ -16,6 +16,7 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
 )
 
@@ -86,11 +87,13 @@ func main() {
 		}
 
 		availableMaps := resp.GetAvailableMaps()
+		sort.Strings(availableMaps.LocalMapPaths)
 		fmt.Println("Local maps:")
 		for _, localMap := range availableMaps.LocalMapPaths {
 			fmt.Println(localMap)
 		}
 
+		sort.Strings(availableMaps.BattlenetMapNames)
 		fmt.Println("\nBattlenet maps:")
 		for _, bnetMap := range availableMaps.BattlenetMapNames {
 			fmt.Println(bnetMap)
