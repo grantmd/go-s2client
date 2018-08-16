@@ -1,10 +1,5 @@
 package main
 
-//
-// TODOs:
-// - Capture ctrl+C and quit
-//
-
 import (
 	"errors"
 	"flag"
@@ -37,15 +32,6 @@ var buffs []*SC2APIProtocol.BuffData        // Most Useful: BuffId
 var mapUnits [][]uint32
 
 func main() {
-	// Setup signal handling
-	quitRequested = false
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigs
-		quitRequested = true
-	}()
-
 	// Parse command line args and configure logging
 	flag.Parse()
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
@@ -64,6 +50,16 @@ func main() {
 		conn: &c,
 	}
 	defer protocol.Disconnect()
+
+	// Setup signal handling
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		log.Println("Quit requested")
+		protocol.Disconnect()
+		os.Exit(1)
+	}()
 
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
@@ -149,6 +145,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Could not send game start request:", err)
 		}
+		log.Println("Request sent")
 
 		resp, err = protocol.ReadResponse()
 		if err != nil {
@@ -248,11 +245,6 @@ func main() {
 
 		// Game loop
 		for {
-			// Do we want to be done?
-			if quitRequested == true {
-				break
-			}
-
 			// Request observation
 			req = &SC2APIProtocol.Request{
 				Request: &SC2APIProtocol.Request_Observation{
@@ -706,8 +698,8 @@ func main() {
 		if err != nil {
 			log.Fatal("Could not receive leave response:", err)
 		}
-		log.Println("gg")
 		log.Println(resp)
+		log.Println("gg")
 	}
 
 	// Disconnect
