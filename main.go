@@ -700,6 +700,24 @@ func main() {
 		}
 		log.Println(resp)
 		log.Println("gg")
+
+		// Quit game
+		req = &SC2APIProtocol.Request{
+			Request: &SC2APIProtocol.Request_Quit{
+				Quit: &SC2APIProtocol.RequestQuit{},
+			},
+		}
+		log.Println("Quitting game…")
+		err = protocol.SendRequest(req)
+		if err != nil {
+			log.Fatal("Could not send quit request:", err)
+		}
+
+		resp, err = protocol.ReadResponse()
+		if err != nil {
+			log.Fatal("Could not receive quit response:", err)
+		}
+		log.Println(resp)
 	}
 
 	// Disconnect
