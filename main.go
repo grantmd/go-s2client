@@ -212,7 +212,7 @@ func main() {
 			mapUnits[i] = make([]uint32, mapX)
 		}
 
-		log.Println("Game data received")
+		log.Println("Game info received")
 
 		// Get game data
 		req = &SC2APIProtocol.Request{
@@ -657,11 +657,11 @@ func main() {
 				log.Println(resp)
 			}
 
-			// Keep this reasonably paced
-			//time.Sleep(100 * time.Millisecond)
-
 			if *realtime == false {
-				// Prep request for action in case we need it
+				// Keep this reasonably paced
+				//time.Sleep(100 * time.Millisecond)
+
+				// Step forward one tick
 				req = &SC2APIProtocol.Request{
 					Request: &SC2APIProtocol.Request_Step{
 						Step: &SC2APIProtocol.RequestStep{
