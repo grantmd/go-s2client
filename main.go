@@ -4,8 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/grantmd/go-s2client/sc2proto"
 	"log"
 	"math"
 	"math/rand"
@@ -13,12 +11,15 @@ import (
 	"os/signal"
 	"sort"
 	"syscall"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/grantmd/go-s2client/sc2proto"
 )
 
 var gamePort = flag.Int("GamePort", 5677, "Ladder server port")
 var startPort = flag.Int("StartPort", 5690, "Ladder server game port")
 var ladderServer = flag.String("LadderServer", "localhost", "Address of ladder server")
-var opponentId = flag.String("OpponentId", "", "Ladder ID of opponent")
+var opponentID = flag.String("OpponentId", "", "Ladder ID of opponent")
 
 var quitRequested bool
 var isMultiplayer bool
@@ -250,12 +251,12 @@ func main() {
 					// This is for "MoveToBeacon"
 					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 317) // beacon
 					if target != nil {
-						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 												X: target.Pos.X,
@@ -276,12 +277,12 @@ func main() {
 					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 1680) // mineral shard
 					// TODO: Make sure this isn't already someone else's target, somehow
 					if target != nil {
-						var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 												X: target.Pos.X,
@@ -301,12 +302,12 @@ func main() {
 					// Attack any enemy we can see
 					target = FindClosestAnyEnemy(rawData.Units, unit)
 					if target != nil {
-						var abilityId int32 = 3674 // "ATTACK".
+						var abilityID int32 = 3674 // "ATTACK".
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
 											TargetUnitTag: target.GetTag(),
 										},
@@ -321,7 +322,7 @@ func main() {
 					}
 
 					// Explore randomly (TODO: Could maybe better explore together)
-					var abilityId int32 = 1 // "SMART". Could also be 16, which is "MOVE"
+					var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
 					offset := float32(32.0)
 					rx := float32(*unit.Pos.X + rand.Float32()*offset)
 					ry := float32(*unit.Pos.Y + rand.Float32()*offset)
@@ -329,7 +330,7 @@ func main() {
 						ActionRaw: &SC2APIProtocol.ActionRaw{
 							Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 								UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-									AbilityId: &abilityId,
+									AbilityId: &abilityID,
 									Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 										TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 											X: &rx,
@@ -351,7 +352,7 @@ func main() {
 				// This is for "CollectMineralsAndGas"
 				if alliance == SC2APIProtocol.Alliance_Self {
 					if obs.PlayerCommon.GetMinerals() >= 100 && obs.PlayerCommon.GetFoodCap()-obs.PlayerCommon.GetFoodUsed() <= 2 && AnyUnitHasOrder(rawData.Units, 45, 319) == false && HasActionQueued(action.Actions, 319) == false { // TODO: Way to find out cost programmatically?
-						var abilityId int32 = 319 // "BUILD_SUPPLYDEPOT"
+						var abilityID int32 = 319 // "BUILD_SUPPLYDEPOT"
 
 						offset := float32(15.0)
 						rx := float32(*unit.Pos.X + rand.Float32()*offset)
@@ -361,7 +362,7 @@ func main() {
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 												X: &rx,
@@ -381,7 +382,7 @@ func main() {
 					if len(unit.GetOrders()) == 0 {
 						if obs.PlayerCommon.GetMinerals() >= 150 && isMultiplayer && (CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 21)) == 0 { // TODO: Way to find out cost programmatically? Check available actions instead of map name
 							if AnyUnitHasOrder(rawData.Units, 45, 321) == false { // Only build one at a time
-								var abilityId int32 = 321 // "BUILD_BARRACKS"
+								var abilityID int32 = 321 // "BUILD_BARRACKS"
 
 								offset := float32(30.0)
 								rx := float32(*unit.Pos.X + rand.Float32()*offset)
@@ -391,7 +392,7 @@ func main() {
 									ActionRaw: &SC2APIProtocol.ActionRaw{
 										Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 											UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-												AbilityId: &abilityId,
+												AbilityId: &abilityID,
 												Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 													TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 														X: &rx,
@@ -413,12 +414,12 @@ func main() {
 							if AnyUnitHasOrder(rawData.Units, 45, 320) == false { // Only build one at a time
 								target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 342) // vespene geyser
 								if target != nil && IsUnitTypeAtPoint(rawData.Units, 20, *target.GetPos()) == false {
-									var abilityId int32 = 320 // "BUILD_REFINERY"
+									var abilityID int32 = 320 // "BUILD_REFINERY"
 									a := &SC2APIProtocol.Action{
 										ActionRaw: &SC2APIProtocol.ActionRaw{
 											Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 												UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-													AbilityId: &abilityId,
+													AbilityId: &abilityID,
 													Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
 														TargetUnitTag: target.GetTag(),
 													},
@@ -436,12 +437,12 @@ func main() {
 
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 20) // terran refinery
 						if target != nil && target.GetAssignedHarvesters() < target.GetIdealHarvesters() {
-							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+							var abilityID int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
 									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-											AbilityId: &abilityId,
+											AbilityId: &abilityID,
 											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
 												TargetUnitTag: target.GetTag(),
 											},
@@ -457,12 +458,12 @@ func main() {
 
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 341) // mineral field
 						if target != nil && target.GetAssignedHarvesters() < 2 {
-							var abilityId int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
+							var abilityID int32 = 3666 // "HARVEST_GATHER". There are other "harvest gather" abilities. What are they for?
 							a := &SC2APIProtocol.Action{
 								ActionRaw: &SC2APIProtocol.ActionRaw{
 									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-											AbilityId: &abilityId,
+											AbilityId: &abilityID,
 											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
 												TargetUnitTag: target.GetTag(),
 											},
@@ -485,7 +486,7 @@ func main() {
 					if obs.PlayerCommon.GetMinerals() >= 400 && unit.GetAssignedHarvesters() > 0 && ((unit.GetIdealHarvesters()/2 <= unit.GetAssignedHarvesters() || unit.GetIdealHarvesters() <= unit.GetAssignedHarvesters()) && AnyUnitHasOrder(rawData.Units, 45, 318) == false && CountUnitsOfType(rawData.Units, SC2APIProtocol.Alliance_Self, 18) == 1) { // TODO: Way to find out cost programmatically?
 						target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Self, 45) // SCV
 						if target != nil {
-							var abilityId int32 = 318 // "BUILD_COMMANDCENTER"
+							var abilityID int32 = 318 // "BUILD_COMMANDCENTER"
 
 							offset := float32(20.0)
 							rx := float32(*target.Pos.X + rand.Float32()*offset)
@@ -495,7 +496,7 @@ func main() {
 								ActionRaw: &SC2APIProtocol.ActionRaw{
 									Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 										UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-											AbilityId: &abilityId,
+											AbilityId: &abilityID,
 											Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
 												TargetWorldSpacePos: &SC2APIProtocol.Point2D{
 													X: &rx,
@@ -514,12 +515,12 @@ func main() {
 					}
 
 					if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() && unit.GetIdealHarvesters() >= unit.GetAssignedHarvesters() { // TODO: Way to find out cost programmatically?
-						var abilityId int32 = 524 // "TRAIN_SCV"
+						var abilityID int32 = 524 // "TRAIN_SCV"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										UnitTags:  []uint64{unit.GetTag()},
 									},
 								},
@@ -535,12 +536,12 @@ func main() {
 			if unitType == 19 { // Supply depot
 				// This is for "CollectMineralsAndGas"
 				if alliance == SC2APIProtocol.Alliance_Self && unit.GetBuildProgress() == 1.0 { // TODO: Check available actions instead of map name
-					var abilityId int32 = 556 // "MORPH_SUPPLYDEPOT_LOWER"
+					var abilityID int32 = 556 // "MORPH_SUPPLYDEPOT_LOWER"
 					a := &SC2APIProtocol.Action{
 						ActionRaw: &SC2APIProtocol.ActionRaw{
 							Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 								UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-									AbilityId: &abilityId,
+									AbilityId: &abilityID,
 									UnitTags:  []uint64{unit.GetTag()},
 								},
 							},
@@ -556,12 +557,12 @@ func main() {
 				// This is for "BuildMarines" (or any multiplayer map)
 				if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
 					if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
-						var abilityId int32 = 560 // "TRAIN_MARINE"
+						var abilityID int32 = 560 // "TRAIN_MARINE"
 						a := &SC2APIProtocol.Action{
 							ActionRaw: &SC2APIProtocol.ActionRaw{
 								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
 									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityId,
+										AbilityId: &abilityID,
 										UnitTags:  []uint64{unit.GetTag()},
 									},
 								},
@@ -705,14 +706,14 @@ func FindFarthestUnit(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.Unit
 }
 
 // This only works for non-enemy units
-func AnyUnitHasOrder(units []*SC2APIProtocol.Unit, desiredUnitType uint32, desiredAbilityID uint32) bool {
+func AnyUnitHasOrder(units []*SC2APIProtocol.Unit, desiredUnitType uint32, desiredabilityID uint32) bool {
 	for _, unit := range units {
 		if unit.GetUnitType() != desiredUnitType {
 			continue
 		}
 
 		for _, order := range unit.GetOrders() {
-			if order.GetAbilityId() == desiredAbilityID {
+			if order.GetAbilityId() == desiredabilityID {
 				return true
 			}
 		}
@@ -763,9 +764,9 @@ func HasActionQueued(actions []*SC2APIProtocol.Action, abilityID int32) bool {
 	return false
 }
 
-func AbilityIsAvailable(desiredAbilityID uint32) (bool, error) {
+func AbilityIsAvailable(desiredabilityID uint32) (bool, error) {
 	for _, ability := range abilities {
-		if ability.GetAbilityId() == desiredAbilityID {
+		if ability.GetAbilityId() == desiredabilityID {
 			return ability.GetAvailable(), nil
 		}
 	}
@@ -773,9 +774,9 @@ func AbilityIsAvailable(desiredAbilityID uint32) (bool, error) {
 	return false, errors.New("Ability not found")
 }
 
-func GetAbilityFootprintRadius(desiredAbilityID uint32) (float32, error) {
+func GetAbilityFootprintRadius(desiredabilityID uint32) (float32, error) {
 	for _, ability := range abilities {
-		if ability.GetAbilityId() == desiredAbilityID {
+		if ability.GetAbilityId() == desiredabilityID {
 			return ability.GetFootprintRadius(), nil
 		}
 	}
