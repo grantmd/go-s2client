@@ -1,4 +1,4 @@
-package main
+package s2client
 
 //
 // The basic websocket connection code

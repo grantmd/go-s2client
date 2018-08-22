@@ -1,4 +1,4 @@
-package main
+package s2client
 
 //
 // Methods for communicating via request/response over the websocket
