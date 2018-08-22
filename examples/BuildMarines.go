@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
+	. "github.com/grantmd/go-s2client"
 	"github.com/grantmd/go-s2client/sc2proto"
 )
 
