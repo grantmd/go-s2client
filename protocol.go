@@ -10,7 +10,7 @@ import (
 )
 
 type Protocol struct {
-	conn *Conn
+	Conn *Conn
 }
 
 func (p *Protocol) SendRequest(req *SC2APIProtocol.Request) (err error) {
@@ -19,11 +19,11 @@ func (p *Protocol) SendRequest(req *SC2APIProtocol.Request) (err error) {
 		return err
 	}
 
-	return p.conn.Write(data)
+	return p.Conn.Write(data)
 }
 
 func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
-	data, err := p.conn.Read()
+	data, err := p.Conn.Read()
 	if err != nil {
 		return nil, err
 	}
@@ -41,5 +41,5 @@ func (p *Protocol) ReadResponse() (res *SC2APIProtocol.Response, err error) {
 }
 
 func (p *Protocol) Disconnect() (err error) {
-	return p.conn.Close()
+	return p.Conn.Close()
 }
