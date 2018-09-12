@@ -13,7 +13,7 @@ import (
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
-	. "github.com/grantmd/go-s2client"
+	"github.com/grantmd/go-s2client"
 	"github.com/grantmd/go-s2client/sc2proto"
 )
 
@@ -41,7 +41,7 @@ func main() {
 	isMultiplayer = true
 	// Connect to game server
 	addr := fmt.Sprintf("%s:%d", *ladderServer, *gamePort)
-	var c Conn
+	var c s2client.Conn
 	log.Printf("Connecting to %s…", addr)
 
 	err := c.Dial(&addr)
@@ -50,8 +50,8 @@ func main() {
 	}
 	log.Println("Successfully connected!")
 
-	protocol := &Protocol{
-		conn: &c,
+	protocol := &s2client.Protocol{
+		Conn: &c,
 	}
 	defer protocol.Disconnect()
 
@@ -835,7 +835,7 @@ func FindClosestAnyEnemy(units []*SC2APIProtocol.Unit, ourUnit *SC2APIProtocol.U
 	return closestUnit
 }
 
-func ListMaps(sc2 Protocol) {
+func ListMaps(sc2 s2client.Protocol) {
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
@@ -870,7 +870,7 @@ func ListMaps(sc2 Protocol) {
 	}
 }
 
-func CreateGame(sc2 Protocol, mapName string, mapPath string) {
+func CreateGame(sc2 s2client.Protocol, mapName string, mapPath string) {
 
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
