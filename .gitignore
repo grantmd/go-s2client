@@ -22,3 +22,5 @@ docker/4.1.2/SC2.4.1.2.60604_2018_05_16.zip
 
 # Main binary
 go-s2client
+
+.idea
