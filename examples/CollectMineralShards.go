@@ -17,14 +17,12 @@ import (
 	"github.com/grantmd/go-s2client/sc2proto"
 )
 
-var gamePort = flag.Int("GamePort", 5677, "Ladder server port")
-var startPort = flag.Int("StartPort", 5690, "Ladder server game port")
-var ladderServer = flag.String("LadderServer", "localhost", "Address of ladder server")
-var opponentID = flag.String("OpponentId", "", "Ladder ID of opponent")
+var gamePort = flag.Int("GamePort", 5000, "Ladder server port")
+var gameServer = flag.String("GameServer", "localhost", "Address of server")
+var realtime = flag.Bool("realtime", false, "run the game in realtime")
 
 var quitRequested bool
 var isMultiplayer bool
-var realtime bool
 
 var abilities []*SC2APIProtocol.AbilityData // Most Useful: AbilityId, Available, FootprintRadius
 var units []*SC2APIProtocol.UnitTypeData    // Most Useful: UnitId, Available, MineralCost, VespeneCost, FoodRequired
@@ -37,10 +35,10 @@ func main() {
 	// Parse command line args and configure logging
 	flag.Parse()
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
-	realtime = false
 	isMultiplayer = true
+
 	// Connect to game server
-	addr := fmt.Sprintf("%s:%d", *ladderServer, *gamePort)
+	addr := fmt.Sprintf("%s:%d", *gameServer, *gamePort)
 	var c s2client.Conn
 	log.Printf("Connecting to %s…", addr)
 
@@ -65,19 +63,50 @@ func main() {
 		os.Exit(1)
 	}()
 
+	// Start sending commands/reading responses
+	var req *SC2APIProtocol.Request
+	var resp *SC2APIProtocol.Response
+
+	// Create a new game
+	ourPlayer := &SC2APIProtocol.PlayerSetup{
+		Type: SC2APIProtocol.PlayerType_Participant.Enum(),
+		Race: SC2APIProtocol.Race_Terran.Enum(),
+	}
+	opponentPlayer := &SC2APIProtocol.PlayerSetup{
+		Type:       SC2APIProtocol.PlayerType_Computer.Enum(),
+		Race:       SC2APIProtocol.Race_Terran.Enum(),
+		Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
+	}
+
+	req = &SC2APIProtocol.Request{
+		Request: &SC2APIProtocol.Request_CreateGame{
+			CreateGame: &SC2APIProtocol.RequestCreateGame{
+				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
+					BattlenetMapName: "CollectMineralShards.go",
+				},
+				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
+				DisableFog:  proto.Bool(false),
+				Realtime:    realtime,
+			},
+		},
+	}
+
+	log.Println("Starting game…")
+	err = protocol.SendRequest(req)
+	if err != nil {
+		log.Fatal("Could not send game start request:", err)
+	}
+	log.Println("Request sent")
+
+	resp, err = protocol.ReadResponse()
+	if err != nil {
+		log.Fatal("Could not receive game start response:", err)
+	}
+	log.Println("Game started:", resp)
+	// TODO: Handle this: "Game started: create_game:<error:InvalidMapPath error_details:"map_path '/SC2/StarCraftII/maps/CollectMineralsAndGas.SC2Map' file doesn't exist." > status:launched"
+
 	// Join the game
-	CurrentPort := *startPort
-	CurrentPort++
-	ReqGamePort := CurrentPort
-	CurrentPort++
-	ReqServerGamePort := CurrentPort
-	CurrentPort++
-	ReqServerBasePort := CurrentPort
-	CurrentPort++
-	ReqClientGamePort := CurrentPort
-	CurrentPort++
-	ReqClientBasePort := CurrentPort
-	req := &SC2APIProtocol.Request{
+	req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_JoinGame{
 			JoinGame: &SC2APIProtocol.RequestJoinGame{
 				Participation: &SC2APIProtocol.RequestJoinGame_Race{
@@ -87,18 +116,6 @@ func main() {
 					Raw:   proto.Bool(true),
 					Score: proto.Bool(true),
 				},
-				ServerPorts: &SC2APIProtocol.PortSet{
-					GamePort: proto.Int(ReqServerGamePort),
-					BasePort: proto.Int(ReqServerBasePort),
-				},
-				ClientPorts: []*SC2APIProtocol.PortSet{
-					&SC2APIProtocol.PortSet{
-						GamePort: proto.Int(ReqClientGamePort),
-						BasePort: proto.Int(ReqClientBasePort),
-					},
-				},
-
-				SharedPort: proto.Int(ReqGamePort),
 			},
 		},
 	}
@@ -109,7 +126,7 @@ func main() {
 		log.Fatal("Could not send join game request:", err)
 	}
 
-	resp, err := protocol.ReadResponse()
+	resp, err = protocol.ReadResponse()
 	if err != nil {
 		log.Fatal("Could not receive join game response:", err)
 	}
@@ -595,7 +612,7 @@ func main() {
 		// Keep this reasonably paced
 		//time.Sleep(100 * time.Millisecond)
 
-		if realtime == false {
+		if *realtime == false {
 			// Prep request for action in case we need it
 			req = &SC2APIProtocol.Request{
 				Request: &SC2APIProtocol.Request_Step{
