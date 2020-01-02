@@ -10,18 +10,18 @@ RUN \
   rm -rf /var/lib/apt
 
 WORKDIR /SC2
-COPY SC2.4.0.2.zip .
+COPY SC2.4.6.1.68195.zip .
 
 # Unzip the game
-RUN unzip -Piagreetotheeula SC2.4.0.2.zip
-RUN rm SC2.4.0.2.zip
+RUN unzip -Piagreetotheeula SC2.4.6.1.68195.zip
+RUN rm SC2.4.6.1.68195.zip
 
 VOLUME ["/maps"]
 
 RUN ln -s /maps/ /SC2/StarCraftII/maps
 
 EXPOSE 12000
-ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base59877/SC2_x64", \
+ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base67926/SC2_x64", \
     "-listen", \
     "0.0.0.0", \
     "-port", \
