@@ -19,6 +19,12 @@ docker/3.16.1/SC2.3.16.1.zip
 docker/3.17/SC2.3.17.zip
 docker/4.0.2/SC2.4.0.2.zip
 docker/4.1.2/SC2.4.1.2.60604_2018_05_16.zip
+docker/4.6/SC2.4.6.0.67926.zip
+docker/4.6.1/SC2.4.6.1.68195.zip
+docker/4.6.2/SC2.4.6.2.69232.zip
+docker/4.7/SC2.AStar.4.7.zip
+docker/4.7.1/SC2.4.7.1.zip
+docker/4.10/SC2.4.10.zip
 
 # Main binary
 go-s2client
