@@ -1,10 +1,9 @@
-FROM ubuntu:19.10
+FROM ubuntu:19.10 as build
 
 # Update the image with required build packages
 RUN \
   apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y \
+  apt-get install -y --no-install-recommends \
     unzip && \
   apt-get clean && \
   rm -rf /var/lib/apt
@@ -13,15 +12,19 @@ WORKDIR /SC2
 COPY SC2.4.10.zip .
 
 # Unzip the game
-RUN unzip -Piagreetotheeula SC2.4.10.zip
-RUN rm SC2.4.10.zip
+RUN unzip -Piagreetotheeula SC2.4.10.zip && \
+  rm SC2.4.10.zip && \
+  apt-get remove -y unzip
+
+FROM ubuntu:19.10
+COPY --from=build /SC2 /
 
 VOLUME ["/maps"]
 
-RUN ln -s /maps/ /SC2/StarCraftII/maps
+RUN ln -s /maps/ /StarCraftII/maps
 
 EXPOSE 12000
-ENTRYPOINT [ "/SC2/StarCraftII/Versions/Base75689/SC2_x64", \
+ENTRYPOINT [ "/StarCraftII/Versions/Base75689/SC2_x64", \
     "-listen", \
     "0.0.0.0", \
     "-port", \
