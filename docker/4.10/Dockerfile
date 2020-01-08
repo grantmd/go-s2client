@@ -9,11 +9,11 @@ RUN \
   rm -rf /var/lib/apt
 
 WORKDIR /SC2
-COPY SC2.3.16.1.zip .
+COPY SC2.4.10.zip .
 
 # Unzip the game
-RUN unzip -Piagreetotheeula SC2.3.16.1.zip && \
-  rm SC2.3.16.1.zip && \
+RUN unzip -Piagreetotheeula SC2.4.10.zip && \
+  rm SC2.4.10.zip && \
   apt-get remove -y unzip
 
 FROM ubuntu:19.10
@@ -24,7 +24,7 @@ VOLUME ["/maps"]
 RUN ln -s /maps/ /StarCraftII/maps
 
 EXPOSE 12000
-ENTRYPOINT [ "/StarCraftII/Versions/Base55958/SC2_x64", \
+ENTRYPOINT [ "/StarCraftII/Versions/Base75689/SC2_x64", \
     "-listen", \
     "0.0.0.0", \
     "-port", \

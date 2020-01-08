@@ -82,7 +82,7 @@ func main() {
 		Request: &SC2APIProtocol.Request_CreateGame{
 			CreateGame: &SC2APIProtocol.RequestCreateGame{
 				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
-					BattlenetMapName: "CollectMineralsAndGas.go",
+					BattlenetMapName: "CollectMineralsAndGas.SC2Map",
 				},
 				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 				DisableFog:  proto.Bool(false),
