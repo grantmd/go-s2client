@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -16,8 +15,8 @@ import (
 	"github.com/grantmd/go-s2client/sc2proto"
 )
 
-var gamePort = flag.Int("GamePort", 5000, "Ladder server port")
 var gameServer = flag.String("GameServer", "localhost", "Address of server")
+var gamePort = flag.Int("GamePort", 12000, "Port of server")
 var realtime = flag.Bool("realtime", false, "run the game in realtime")
 
 var quitRequested bool
@@ -37,19 +36,7 @@ func main() {
 	isMultiplayer = true
 
 	// Connect to game server
-	addr := fmt.Sprintf("%s:%d", *gameServer, *gamePort)
-	var c s2client.Conn
-	log.Printf("Connecting to %s…", addr)
-
-	err := c.Dial(&addr)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	log.Println("Successfully connected!")
-
-	protocol := &s2client.Protocol{
-		Conn: &c,
-	}
+	protocol := s2client.Connect(*gameServer, *gamePort)
 	defer protocol.Disconnect()
 
 	// Setup signal handling
@@ -85,7 +72,7 @@ func main() {
 	}
 	// Should change indentation here, probably need some auto-format tool at some point, but cba right now
 	log.Println("Joining game…")
-	err = protocol.SendRequest(req)
+	err := protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send join game request:", err)
 	}

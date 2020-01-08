@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -38,20 +37,9 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	realtime = false
 	isMultiplayer = true
+
 	// Connect to game server
-	addr := fmt.Sprintf("%s:%d", *ladderServer, *gamePort)
-	var c s2client.Conn
-	log.Printf("Connecting to %s…", addr)
-
-	err := c.Dial(&addr)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	log.Println("Successfully connected!")
-
-	protocol := &s2client.Protocol{
-		Conn: &c,
-	}
+	protocol := s2client.Connect(*gameServer, *gamePort)
 	defer protocol.Disconnect()
 
 	// Setup signal handling
@@ -101,9 +89,9 @@ func main() {
 			},
 		},
 	}
-	
+
 	log.Println("Joining game…")
-	err = protocol.SendRequest(req)
+	err := protocol.SendRequest(req)
 	if err != nil {
 		log.Fatal("Could not send join game request:", err)
 	}

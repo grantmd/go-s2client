@@ -9,6 +9,24 @@ import (
 	SC2APIProtocol "github.com/grantmd/go-s2client/sc2proto"
 )
 
+func Connect(ip string, port int) *Protocol {
+	addr := fmt.Sprintf("%s:%d", ip, port)
+	var c Conn
+	log.Printf("Connecting to %s…", addr)
+
+	err := c.Dial(&addr)
+	if err != nil {
+		log.Fatal("dial:", err)
+	}
+	log.Println("Successfully connected!")
+
+	protocol := &Protocol{
+		Conn: &c,
+	}
+
+	return protocol
+}
+
 func ListMaps(sc2 *Protocol) {
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
