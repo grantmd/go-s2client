@@ -298,4 +298,6 @@ const (
 	CycloneRapidFireLaunchers                  Upgrade = 291
 	RavenEnhancedMunitions                     Upgrade = 292
 	DiggingClaws                               Upgrade = 293
+	CarrierCarrierCapacity                     Upgrade = 294
+	CarrierLeashRangeUpgrade                   Upgrade = 295
 )

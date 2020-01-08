@@ -10,8 +10,8 @@ const (
 	Stop                                          Ability = 4
 	HoldFire                                      Ability = 10
 	Move                                          Ability = 16
-	Patrol                                        Ability = 17
-	HoldPosition                                  Ability = 18
+	PatrolPatrol                                  Ability = 17
+	HoldPositionHold                              Ability = 18
 	ScanMove                                      Ability = 19
 	Beacon                                        Ability = 21
 	Attack                                        Ability = 23
@@ -164,6 +164,7 @@ const (
 	ResearchDrillingClaws                         Ability = 764
 	ResearchSmartServos                           Ability = 766
 	ResearchCycloneRapidFireLaunchers             Ability = 768
+	ResearchCycloneLockOnDamage                   Ability = 769
 	StarportTechLabResearch                       Ability = 790
 	ResearchRavenCorvidReactor                    Ability = 793
 	ResearchBansheeHyperflightRotors              Ability = 799
@@ -1058,7 +1059,17 @@ const (
 	ShieldBatteryRechargeChanneled                Ability = 3765
 	NexusShieldOvercharge                         Ability = 3767
 	NexusShieldOverchargeOff                      Ability = 3769
-	OverlordSingleTransport                       Ability = 3771
-	ViperParasiticBombRelay                       Ability = 3776
-	ParasiticBombRelayDodge                       Ability = 3778
+	BattlecruiserAttack                           Ability = 3771
+	BattlecruiserAttackEvaluator                  Ability = 3774
+	BattlecruiserMove                             Ability = 3776
+	PatrolBattlecruiser                           Ability = 3777
+	HoldPositionBattlecruiser                     Ability = 3778
+	BattlecruiserStopEvaluator                    Ability = 3781
+	BattlecruiserStop                             Ability = 3783
+	ViperParasiticBombRelay                       Ability = 3789
+	ParasiticBombRelayDodge                       Ability = 3791
+	GeneralHoldPosition                           Ability = 3793
+	GeneralMove                                   Ability = 3794
+	GeneralPatrol                                 Ability = 3795
+	GeneralUnloadUnit                             Ability = 3796
 )

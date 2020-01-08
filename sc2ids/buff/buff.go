@@ -292,4 +292,5 @@ const (
 	InfestorEnsnareMakePrecursorReheightSource          Buff = 285
 	NexusShieldOvercharge                               Buff = 286
 	ParasiticBombDelayTimedLife                         Buff = 287
+	Transfusion                                         Buff = 288
 )

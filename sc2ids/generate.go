@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -20,14 +21,19 @@ func normalizeName(name string) string {
 }
 
 func main() {
-	// todo: support all OS
-	file, err := ioutil.ReadFile(os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH") + "/Documents/StarCraft II/stableid.json")
+	resp, err := http.Get("https://raw.githubusercontent.com/Blizzard/s2client-proto/master/stableid.json")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
 
 	data := map[string]interface{}{}
-	if err = json.Unmarshal(file, &data); err != nil {
+	if err = json.Unmarshal(body, &data); err != nil {
 		panic(err)
 	}
 
