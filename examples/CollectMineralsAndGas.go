@@ -50,7 +50,7 @@ func main() {
 	}()
 	// Create a new game
 	mapName := "CollectMineralsAndGas.SC2Map"
-	s2client.CreateGame(protocol, "", mapName)
+	s2client.CreateLocalGame(protocol, mapName)
 
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request

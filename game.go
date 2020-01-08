@@ -62,7 +62,15 @@ func ListMaps(sc2 *Protocol) {
 	}
 }
 
-func CreateGame(sc2 *Protocol, mapName string, mapPath string) {
+func CreateLocalGame(sc2 *Protocol, mapPath string) {
+	createGame(sc2, "", mapPath)
+}
+
+func CreateBattlenetGame(sc2 *Protocol, mapName string) {
+	createGame(sc2, mapName, "")
+}
+
+func createGame(sc2 *Protocol, mapName string, mapPath string) {
 
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
