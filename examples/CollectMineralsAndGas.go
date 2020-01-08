@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
-	"sort"
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
