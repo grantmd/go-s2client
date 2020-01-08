@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
-	"sort"
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
@@ -102,7 +101,7 @@ func main() {
 			},
 		},
 	}
-	// Should change indentation here, probably need some auto-format tool at some point, but cba right now
+	
 	log.Println("Joining game…")
 	err = protocol.SendRequest(req)
 	if err != nil {

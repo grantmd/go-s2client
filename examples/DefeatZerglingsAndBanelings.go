@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
-	"sort"
 	"syscall"
 
 	"github.com/golang/protobuf/proto"
@@ -63,50 +62,13 @@ func main() {
 		os.Exit(1)
 	}()
 
+	// Create a new game
+	mapName := "DefeatZerglingsAndBanelings.SC2Map"
+	s2client.CreateGame(protocol, "", mapName)
+
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
-
-	// Create a new game
-	ourPlayer := &SC2APIProtocol.PlayerSetup{
-		Type: SC2APIProtocol.PlayerType_Participant.Enum(),
-		Race: SC2APIProtocol.Race_Terran.Enum(),
-	}
-	opponentPlayer := &SC2APIProtocol.PlayerSetup{
-		Type:       SC2APIProtocol.PlayerType_Computer.Enum(),
-		Race:       SC2APIProtocol.Race_Terran.Enum(),
-		Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
-	}
-
-	mapName := "DefeatZerglingsAndBanelings.SC2Map"
-	req = &SC2APIProtocol.Request{
-		Request: &SC2APIProtocol.Request_CreateGame{
-			CreateGame: &SC2APIProtocol.RequestCreateGame{
-				Map: &SC2APIProtocol.RequestCreateGame_LocalMap{
-					LocalMap: &SC2APIProtocol.LocalMap{
-						MapPath: &mapName,
-					},
-				},
-				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
-				DisableFog:  proto.Bool(false),
-				Realtime:    realtime,
-			},
-		},
-	}
-
-	log.Println("Starting game…")
-	err = protocol.SendRequest(req)
-	if err != nil {
-		log.Fatal("Could not send game start request:", err)
-	}
-	log.Println("Request sent")
-
-	resp, err = protocol.ReadResponse()
-	if err != nil {
-		log.Fatal("Could not receive game start response:", err)
-	}
-	log.Println("Game started:", resp)
-	// TODO: Handle this: "Game started: create_game:<error:InvalidMapPath error_details:"map_path '/SC2/StarCraftII/maps/CollectMineralsAndGas.SC2Map' file doesn't exist." > status:launched"
 
 	// Join the game
 	req = &SC2APIProtocol.Request{

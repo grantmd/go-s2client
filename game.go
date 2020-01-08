@@ -44,7 +44,7 @@ func ListMaps(sc2 *Protocol) {
 	}
 }
 
-func CreateGame(sc2 Protocol, mapName string, mapPath string) {
+func CreateGame(sc2 *Protocol, mapName string, mapPath string) {
 
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
@@ -76,6 +76,7 @@ func CreateGame(sc2 Protocol, mapName string, mapPath string) {
 				},
 			}
 		}
+
 		if mapPath != "" {
 			req = &SC2APIProtocol.Request{
 				Request: &SC2APIProtocol.Request_CreateGame{
