@@ -78,11 +78,14 @@ func main() {
 		Difficulty: SC2APIProtocol.Difficulty_VeryHard.Enum(),
 	}
 
+	mapName := "FindAndDefeatZerglings.SC2Map"
 	req = &SC2APIProtocol.Request{
 		Request: &SC2APIProtocol.Request_CreateGame{
 			CreateGame: &SC2APIProtocol.RequestCreateGame{
-				Map: &SC2APIProtocol.RequestCreateGame_BattlenetMapName{
-					BattlenetMapName: "FindAndDefeatZerglings.SC2Map",
+				Map: &SC2APIProtocol.RequestCreateGame_LocalMap{
+					LocalMap: &SC2APIProtocol.LocalMap{
+						MapPath: &mapName,
+					},
 				},
 				PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 				DisableFog:  proto.Bool(false),
