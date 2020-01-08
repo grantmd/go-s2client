@@ -9,6 +9,7 @@ import (
 	SC2APIProtocol "github.com/grantmd/go-s2client/sc2proto"
 )
 
+// Connect takes an ip address and port and connects to it
 func Connect(ip string, port int) *Protocol {
 	addr := fmt.Sprintf("%s:%d", ip, port)
 	var c Conn
@@ -27,6 +28,8 @@ func Connect(ip string, port int) *Protocol {
 	return protocol
 }
 
+// ListMaps takes an open connection, asks the server for a list of available
+// maps, and prints them out
 func ListMaps(sc2 *Protocol) {
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
@@ -62,10 +65,15 @@ func ListMaps(sc2 *Protocol) {
 	}
 }
 
+// CreateLocalGame takes an existing open connection and a path to
+// a "local map" (like the mini games), and tells the server to create
+// a game for it
 func CreateLocalGame(sc2 *Protocol, mapPath string) {
 	createGame(sc2, "", mapPath)
 }
 
+// CreateBattlentGame takes an existing open connection and a Battle.Net
+// map name, and tells the server to create a game for it
 func CreateBattlenetGame(sc2 *Protocol, mapName string) {
 	createGame(sc2, mapName, "")
 }
