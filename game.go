@@ -68,17 +68,17 @@ func ListMaps(sc2 *Protocol) {
 // CreateLocalGame takes an existing open connection and a path to
 // a "local map" (like the mini games), and tells the server to create
 // a game for it
-func CreateLocalGame(sc2 *Protocol, mapPath string) {
-	createGame(sc2, "", mapPath)
+func CreateLocalGame(sc2 *Protocol, mapPath string, realtime bool) {
+	createGame(sc2, "", mapPath, realtime)
 }
 
 // CreateBattlentGame takes an existing open connection and a Battle.Net
 // map name, and tells the server to create a game for it
-func CreateBattlenetGame(sc2 *Protocol, mapName string) {
-	createGame(sc2, mapName, "")
+func CreateBattlenetGame(sc2 *Protocol, mapName string, realtime bool) {
+	createGame(sc2, mapName, "", realtime)
 }
 
-func createGame(sc2 *Protocol, mapName string, mapPath string) {
+func createGame(sc2 *Protocol, mapName string, mapPath string, realtime bool) {
 
 	var req *SC2APIProtocol.Request
 	var resp *SC2APIProtocol.Response
@@ -105,7 +105,7 @@ func createGame(sc2 *Protocol, mapName string, mapPath string) {
 						},
 						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 						DisableFog:  proto.Bool(false),
-						Realtime:    proto.Bool(false),
+						Realtime:    proto.Bool(realtime),
 					},
 				},
 			}
@@ -122,7 +122,7 @@ func createGame(sc2 *Protocol, mapName string, mapPath string) {
 						},
 						PlayerSetup: []*SC2APIProtocol.PlayerSetup{ourPlayer, opponentPlayer},
 						DisableFog:  proto.Bool(false),
-						Realtime:    proto.Bool(false),
+						Realtime:    proto.Bool(realtime),
 					},
 				},
 			}

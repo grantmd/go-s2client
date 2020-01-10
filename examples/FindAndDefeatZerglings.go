@@ -51,7 +51,7 @@ func main() {
 
 	// Create a new game
 	mapName := "FindAndDefeatZerglings.SC2Map"
-	s2client.CreateLocalGame(protocol, mapName)
+	s2client.CreateLocalGame(protocol, mapName, *realtime)
 
 	// Start sending commands/reading responses
 	var req *SC2APIProtocol.Request
