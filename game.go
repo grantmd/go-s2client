@@ -149,8 +149,8 @@ func createGame(sc2 *Protocol, mapName string, mapPath string) {
 
 // Best Scores:
 // MoveToBeacon: 27
-// CollectMineralShards: 109
-// CollectMineralsAndGas: 5986
+// CollectMineralShards: 121
+// CollectMineralsAndGas: 6114
 // BuildMarines: 30
 // DefeatZerglingsAndBanelings: 67
 // DefeatRoaches: 46

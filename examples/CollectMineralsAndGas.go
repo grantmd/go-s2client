@@ -214,109 +214,6 @@ func main() {
 			unitType = unit.GetUnitType()
 			alliance = unit.GetAlliance()
 
-			if unitType == 48 { // Marine
-				if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
-
-					// This is for "MoveToBeacon"
-					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 317) // beacon
-					if target != nil {
-						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-												X: target.Pos.X,
-												Y: target.Pos.Y,
-											},
-										},
-										UnitTags: []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to beacon %d", unit.GetTag(), target.GetTag())
-						continue
-					}
-
-					// This is for "CollectMineralShards"
-					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 1680) // mineral shard
-					// TODO: Make sure this isn't already someone else's target, somehow
-					if target != nil {
-						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-												X: target.Pos.X,
-												Y: target.Pos.Y,
-											},
-										},
-										UnitTags: []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to mineral shard %d", unit.GetTag(), target.GetTag())
-						continue
-					}
-
-					// Attack any enemy we can see
-					target = FindClosestAnyEnemy(rawData.Units, unit)
-					if target != nil {
-						var abilityID int32 = 3674 // "ATTACK".
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetUnitTag{
-											TargetUnitTag: target.GetTag(),
-										},
-										UnitTags: []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to attack enemy %d of type %d", unit.GetTag(), target.GetTag(), target.GetUnitType())
-						continue
-					}
-
-					// Explore randomly (TODO: Could maybe better explore together)
-					var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-					offset := float32(32.0)
-					rx := float32(*unit.Pos.X + rand.Float32()*offset)
-					ry := float32(*unit.Pos.Y + rand.Float32()*offset)
-					a := &SC2APIProtocol.Action{
-						ActionRaw: &SC2APIProtocol.ActionRaw{
-							Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-								UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-									AbilityId: &abilityID,
-									Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-										TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-											X: &rx,
-											Y: &ry,
-										},
-									},
-									UnitTags: []uint64{unit.GetTag()},
-								},
-							},
-						},
-					}
-					action.Actions = append(action.Actions, a)
-					log.Printf("Moving marine %d to explore at %f,%f", unit.GetTag(), rx, ry)
-					continue
-				}
-			}
-
 			if unitType == 45 { // TERRAN SCV
 				// This is for "CollectMineralsAndGas"
 				if alliance == SC2APIProtocol.Alliance_Self {
@@ -519,28 +416,6 @@ func main() {
 					action.Actions = append(action.Actions, a)
 					log.Printf("Supply depot %d lowering", unit.GetTag())
 					continue
-				}
-			}
-
-			if unitType == 21 { // Barracks
-				// This is for "BuildMarines" (or any multiplayer map)
-				if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 && unit.GetBuildProgress() == 1.0 {
-					if obs.PlayerCommon.GetMinerals() >= 50 && obs.PlayerCommon.GetFoodCap() > obs.PlayerCommon.GetFoodUsed() { // TODO: Way to find out cost programmatically?
-						var abilityID int32 = 560 // "TRAIN_MARINE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										UnitTags:  []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Barracks %d training marine", unit.GetTag())
-						continue
-					}
 				}
 			}
 		}

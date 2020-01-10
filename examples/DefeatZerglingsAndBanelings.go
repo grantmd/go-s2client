@@ -218,57 +218,6 @@ func main() {
 			if unitType == 48 { // Marine
 				if alliance == SC2APIProtocol.Alliance_Self && len(unit.GetOrders()) == 0 {
 
-					// This is for "MoveToBeacon"
-					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 317) // beacon
-					if target != nil {
-						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-												X: target.Pos.X,
-												Y: target.Pos.Y,
-											},
-										},
-										UnitTags: []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to beacon %d", unit.GetTag(), target.GetTag())
-						continue
-					}
-
-					// This is for "CollectMineralShards"
-					target = FindClosestUnit(rawData.Units, unit, SC2APIProtocol.Alliance_Neutral, 1680) // mineral shard
-					// TODO: Make sure this isn't already someone else's target, somehow
-					if target != nil {
-						var abilityID int32 = 1 // "SMART". Could also be 16, which is "MOVE"
-						a := &SC2APIProtocol.Action{
-							ActionRaw: &SC2APIProtocol.ActionRaw{
-								Action: &SC2APIProtocol.ActionRaw_UnitCommand{
-									UnitCommand: &SC2APIProtocol.ActionRawUnitCommand{
-										AbilityId: &abilityID,
-										Target: &SC2APIProtocol.ActionRawUnitCommand_TargetWorldSpacePos{
-											TargetWorldSpacePos: &SC2APIProtocol.Point2D{
-												X: target.Pos.X,
-												Y: target.Pos.Y,
-											},
-										},
-										UnitTags: []uint64{unit.GetTag()},
-									},
-								},
-							},
-						}
-						action.Actions = append(action.Actions, a)
-						log.Printf("Moving marine %d to mineral shard %d", unit.GetTag(), target.GetTag())
-						continue
-					}
-
 					// Attack any enemy we can see
 					target = FindClosestAnyEnemy(rawData.Units, unit)
 					if target != nil {
