@@ -4,6 +4,7 @@ The StarCraft II API provides access to in-game state observation and unit contr
 This library provides a Go interface to the API, allowing for both ladder and local bot development.
 
 [![Actions Status](https://github.com/grantmd/go-s2client/workflows/Go/badge.svg)](https://github.com/grantmd/go-s2client/actions)
+[![Go Reference](https://pkg.go.dev/badge/github.com/grantmd/go-s2client.svg)](https://pkg.go.dev/github.com/grantmd/go-s2client)
 
 ## Examples
 
